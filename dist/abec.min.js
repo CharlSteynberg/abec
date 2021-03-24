@@ -2735,11 +2735,10 @@ if(SERVERSIDE){hard("Path",require("path"))};
             },
 
 
-            create:function create(addr,path,indx,dbug)
+            create:function create(path,addr,indx,dbug)
             {
-                runsAt(SERVER); let prt,inf,erg,pts,alt,arg,nme,msg,cfg; prt=conf("Host/openPort");
-                cfg=conf("Host"); if(isPath(addr)){indx=path; path=addr; addr=prt;}else
-                if(isInum(addr)){prt=addr; addr=VOID};  if(!path){path=""};
+                runsAt(SERVER); let prt,inf,erg,pts,alt,arg,nme,msg,cfg; prt=conf("Host/openPort"); cfg=conf("Host");
+                if(isInum(path)){prt=path; path=VOID};  if(!path){path=""};
                 if(isText(addr)){addr=lowerCase(addr); pts=part(addr,":"); if(pts){addr=pts[0]; prt=(pts[2]*1)}}
                 else if(isInum(addr)){prt=addr; addr=VOID}; arg=[prt]; alt="0.0.0.0"; if(addr&&(addr!=alt)){arg.radd(addr)};
                 if(!cfg.authKeys[HOSTADDR]){cfg.authKeys[HOSTADDR]=hash(VOID,"sha1"); conf({Host:cfg});};
