@@ -1,6 +1,6 @@
 {
   "name": "abec",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "os":["linux"],
   "description": "Abstract Bios Evolution Core",
   "main": "index.js",
