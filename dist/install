@@ -1,5 +1,6 @@
 #! /usr/bin/node
 
+process.chdir(__dirname);
 require("./abec.min.js");
 
 
