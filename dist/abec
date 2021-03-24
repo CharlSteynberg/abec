@@ -1,0 +1,45 @@
+#! /usr/bin/node
+
+require(`abec`);
+
+
+defn
+({
+    handle:
+    {
+        CLI:
+        {
+            host: function host()
+            {
+                server.create.apply(server,args(arguments));
+            },
+
+            durl: function durl(src,dst)
+            {
+                let rsl = endurl(src);
+                disk.writeFile(dst,rsl);
+                dump(OK);
+            },
+        },
+    }
+});
+
+
+
+(function init(a,c)
+{
+    config.Host.eventLog = true;
+    config.Host.readDirs = true;
+    // config.View.backDrop = ""; // TODO :: this could be messy, but worth it .. to be developed
+    // config.Host.showHidn = true;
+
+    a=args();  if(!expect.word(a[0])){return};
+    c=a.shift(); if(!handle.CLI[c]){moan(`invalid option "${c}"`); return};
+
+    dump("running: abec "+c);
+
+    when("allReady").then(()=>
+    {
+        handle.CLI[c].apply(handle.CLI,a);
+    });
+}());

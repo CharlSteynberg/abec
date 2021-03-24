@@ -1,0 +1,34 @@
+{
+  "name": "abec",
+  "version": "1.0.0",
+  "os":["linux"],
+  "description": "Abstract Bios Evolution Core",
+  "main": "index.js",
+  "scripts": {
+    "test": "./test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CharlSteynberg/abec.git"
+  },
+  "keywords": [
+    "front-end",
+    "back-end",
+    "tool-library"
+  ],
+  "author": "Charl Steynberg <charl.xacra@gmail.com>",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/CharlSteynberg/abec/issues"
+  },
+  "homepage": "https://github.com/CharlSteynberg/abec#readme",
+  "dependencies": {
+    "uglify-js": "^3.13.2"
+  },
+  "directories":
+  {
+      "bits":"./bits",
+      "dist":"./dist",
+      "test":"./test"
+  }
+}

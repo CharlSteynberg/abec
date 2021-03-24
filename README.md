@@ -1,2 +1,2 @@
 # abec
-Acquired Basis Enhancement Core
+Abstract Bios Evolution Core

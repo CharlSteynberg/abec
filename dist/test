@@ -1,0 +1,11 @@
+#! /usr/bin/node
+
+require(`./abec.min.js`);
+
+(function testMain()
+{
+    // run some tests
+    // TODO :: lots of tests .. on many interfaces .. some async
+
+    process.exit(0);
+})();
