@@ -1,11 +1,15 @@
 # abec
 Abstract Bios Evolution Core
 
+
+
 ## Installation
 The **abec** library is a set of tools to use in JavaScript and runs both back-end and front-end, running inside the NodeJS -and web-browser platforms -respectively.
 
 - it can be installed locally on a Linux host via `npm install abec`
 - in can be referenced in the browser like this `<script src="./somePathTo/abec.min.js"></scripr>`
+
+
 
 ## Examples
 The full documentation elaborates a lot more than the few examples below, but these should get you up to speed read quick:
@@ -19,6 +23,7 @@ To create a local file-server:
 
 If you want to have more control over this, have a look in the `/dist/abec` source-code.
 The `allReady` event is listened upon, same as shown in client-side, below.
+
 
 ### client-side
 Once you've added the **abec** script to your HTML, you can access all its tools when it's ready, like this:
