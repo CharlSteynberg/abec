@@ -1,6 +1,23 @@
 #! /usr/bin/node
 
-require("abec");
+
+// cond :: validate : dependencies
+try
+{
+    require("abec");
+}
+catch(err)
+{
+    if((err+"").indexOf("Cannot find module"))
+    {
+        err=`\nmissing dependencies .. run this command in the cloned project folder:\n`
+           +` npm install\n\n-then try again\n\nIf this error persists, `
+           +`make sure:\n - npm is installed\n - the project has a "package.json" file\n`;
+    };
+
+    console.log(err);
+    process.exit(1);
+};
 
 
 defn
