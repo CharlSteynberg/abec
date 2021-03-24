@@ -5,7 +5,8 @@
   "description": "Abstract Bios Evolution Core",
   "main": "index.js",
   "scripts": {
-    "test": "./test"
+    "test": "./test",
+    "install": "./install",
   },
   "repository": {
     "type": "git",

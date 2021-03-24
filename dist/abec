@@ -1,6 +1,6 @@
 #! /usr/bin/node
 
-require(`abec`);
+require("abec");
 
 
 defn
