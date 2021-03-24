@@ -1,12 +1,12 @@
 {
   "name": "abec",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "os":["linux"],
   "description": "Abstract Bios Evolution Core",
   "main": "index.js",
   "scripts": {
-    "test": "./test",
-    "install": "./install"
+    "test": "./dist/test",
+    "install": "./dist/install"
   },
   "repository": {
     "type": "git",
