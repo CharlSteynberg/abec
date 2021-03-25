@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "./dist/test",
-    "install": "./dist/install"
+    "postinstall": "./dist/install"
   },
   "repository": {
     "type": "git",

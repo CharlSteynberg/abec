@@ -839,6 +839,12 @@
 // ----------------------------------------------------------------------------------------------------------------------------
     hard(function exists(arg)
     {
+        if(isText(arg)&&arg.startsWith("~/"))
+        {
+            let usr = Host.userInfo().username;
+            arg = ("/home/"+usr+arg.slice(1));
+        };
+
         if(SERVERSIDE&&isPath(arg)){return (disk.exists(arg)?arg:"")};
         try{if(!!select(arg)){return arg}}catch(err){return ""};
     });
