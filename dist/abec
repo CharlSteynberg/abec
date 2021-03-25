@@ -1,25 +1,40 @@
 #! /usr/bin/node
 
 
+// envi :: path : where too look for modules .. feel free to add more here, or come up with a dynamic solution
+// ----------------------------------------------------------------------------------------------------------------------------
+    module.paths.push("/usr/lib/node_modules");
+    module.paths.push("/usr/local/lib/node_modules");
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
 // cond :: validate : dependencies
-try
-{
-    require("abec");
-}
-catch(err)
-{
-    if((err+"").indexOf("Cannot find module"))
+// ----------------------------------------------------------------------------------------------------------------------------
+    try
     {
-        err=`\nmissing dependencies .. run this command in the cloned project folder:\n`
-           +` npm install\n\n-then try again\n\nIf this error persists, `
-           +`make sure:\n - npm is installed\n - the project has a "package.json" file\n`;
+        require("abec");
+    }
+    catch(err)
+    {
+        if((err+"").indexOf("Cannot find module"))
+        {
+            err=`\nmissing dependencies .. run this command in the cloned project folder:\n`
+               +` npm install\n\n-then try again\n\nIf this error persists, `
+               +`make sure:\n - npm is installed\n - the project has a "package.json" file\n`;
+        };
+
+        console.log(err);
+        process.exit(1);
     };
-
-    console.log(err);
-    process.exit(1);
-};
+// ----------------------------------------------------------------------------------------------------------------------------
 
 
+
+
+// defn :: handle : CLI arguments
+// ----------------------------------------------------------------------------------------------------------------------------
 defn
 ({
     handle:
