@@ -2,11 +2,26 @@
 
 
 
-// defn :: (tools) : server-side
+// defn :: (tools) : server-side .. to run bash code: exec(`echo "flerb"`).then((out)=>{dump(out)}); // flerb
 // ----------------------------------------------------------------------------------------------------------------------------
     if(SERVERSIDE)
     {
         hard("Host",require("os"));
+
+        extend(Host)({mule:require("child_process")});
+
+        extend(MAIN)
+        ({
+            exec:function exec(cmd,shh)
+            {
+                return enthen((fnc)=>{Host.mule(cmd,(hlt,rsl,err)=>
+                {
+                    if(hlt){if(!shh){fail(hlt)}; return};
+                    if(!isText(rsl)){rsl=""}; if(!isText(err)){err=""};
+                    rsl=(err+"\n\n"+rsl).trim(); fnc(rsl);
+                })});
+            },
+        });
     };
 // ----------------------------------------------------------------------------------------------------------------------------
 

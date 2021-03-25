@@ -1,10 +1,10 @@
-#! /usr/bin/node
+#!/usr/bin/node
 
 require(`./abec.min.js`);
 
 (function testMain()
 {
-    // run some tests
+    // run some tests .. if somthing horrible went wrong in abec, the test should have failed already
     // TODO :: lots of tests .. on many interfaces .. some async
 
     process.exit(0);

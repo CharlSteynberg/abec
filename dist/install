@@ -2,7 +2,6 @@
 
 process.chdir(__dirname);
 require("./abec.min.js");
-dump("installing abec as cli ...");
 
 upon("allReady",function install()
 {
