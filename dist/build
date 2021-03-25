@@ -75,7 +75,6 @@
     if((typeof Abec)=="string")
     {
         pset("../dist/abec.min.js",Abec);
-        pset("../index.js",Abec);
         console.log("\nabec build ... DONE\n");
     }
     else
