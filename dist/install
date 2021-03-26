@@ -1,10 +1,2 @@
-process.chdir(__dirname);
-require("./abec.min.js");
-
-upon("allReady",function install()
-{
-    if(exists("~/.local")&&!exists("~/.local/bin")){create("~/.local/bin/")};
-    disk.copyFile("./abec",((exists("~/.local/bin")||exists("~/bin")||"/usr/local/bin")+"/abec"));
-
-    dump("done");
-});
+#!/usr/bin/sh
+sudo cp ./dist/abec /usr/local/bin/abec
