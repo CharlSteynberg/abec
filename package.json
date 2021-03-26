@@ -1,6 +1,6 @@
 {
   "name": "abec",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "os":["!win32"],
   "description": "Abstract Bios Evolution Core",
   "main": "index.js",
