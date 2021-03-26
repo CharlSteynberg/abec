@@ -1,2 +1,0 @@
-#!/usr/bin/bash
-sudo cp ./dist/abec /usr/local/bin/abec

@@ -7,7 +7,7 @@
   "scripts": {
     "build": "node ./dist/build",
     "test": "node ./dist/test",
-    "postinstall": "./dist/install"
+    "postinstall": "sudo cp ./dist/abec /usr/local/bin/abec"
   },
   "repository": {
     "type": "git",
