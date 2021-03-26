@@ -1,7 +1,7 @@
 {
   "name": "abec",
   "version": "1.0.6",
-  "os":["linux"],
+  "os":["darwin"],
   "description": "Abstract Bios Evolution Core",
   "main": "index.js",
   "scripts": {
