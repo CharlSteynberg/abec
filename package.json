@@ -1,12 +1,13 @@
 {
   "name": "abec",
-  "version": "1.0.6",
-  "os":["darwin"],
+  "version": "1.0.8",
+  "os":["darwin","linux"],
   "description": "Abstract Bios Evolution Core",
   "main": "index.js",
   "scripts": {
-    "test": "./dist/test",
-    "postinstall": "./dist/install"
+    "build": "node ./dist/build",
+    "test": "node ./dist/test",
+    "postinstall": "node ./dist/install"
   },
   "repository": {
     "type": "git",

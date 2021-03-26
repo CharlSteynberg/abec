@@ -1,4 +1,4 @@
-#! /usr/bin/node
+#!/usr/bin/node
 
 
 // envi :: path : where too look for modules .. feel free to add more here, or come up with a dynamic solution

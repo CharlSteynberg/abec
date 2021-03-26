@@ -1,13 +1,10 @@
-#! /usr/bin/node
-
-
-
 // init :: (prep) : prepare the environment
 // ----------------------------------------------------------------------------------------------------------------------------
     process.chdir(__dirname);
     globalThis.Main = globalThis;
 
     Main.Fsys = require("fs");
+    Main.Bash = require("child_process");
     Main.Ugly = require("uglify-js");
     Main.Root = "../bits";
 
@@ -75,6 +72,10 @@
     if((typeof Abec)=="string")
     {
         pset("../dist/abec.min.js",Abec);
+        let path = (Bash.execSync("which node",{encoding:"utf8"})+"").trim();
+        let code = pget("../dist/abec"); code=code.split("#!/usr/bin/node").join(path);
+        pset("../dist/abec",code);
+
         console.log("\nabec build ... DONE\n");
     }
     else
