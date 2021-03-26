@@ -1,13 +1,13 @@
 {
   "name": "abec",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "os":["!win32"],
   "description": "Abstract Bios Evolution Core",
   "main": "index.js",
   "scripts": {
     "build": "node ./dist/build",
     "test": "node ./dist/test",
-    "postinstall": "node ./dist/install"
+    "postinstall": "./dist/install"
   },
   "repository": {
     "type": "git",
