@@ -25,7 +25,7 @@
             then((nde)=>
             {
                 let box=rect(nde.parentNode); let opt; // options may be optional later
-                let req={angle:45,ratio:(box.width/box.height),place:15000,speed:0.3};
+                let req={angle:45,ratio:(box.width/box.height),place:15000,speed:1};
                 if(!isKnob(opt)){opt=req}else{opt.assign(req)};
 
                 this.driver.scene = new THREE.Scene();
@@ -37,7 +37,7 @@
 
                 this.driver.cntrl.zoomSpeed = opt.speed;
                 this.driver.cntrl.target = (new THREE.Vector3(0,0,0));
-                this.driver.camra.position.z = 1000;
+                this.driver.camra.position.z = 1500;
                 this.driver.webgl.setPixelRatio(window.devicePixelRatio);
                 this.driver.webgl.setSize(box.width, box.height);
 
@@ -69,15 +69,15 @@
                 });
 
 
-                this.upon("CameraDolly",(e)=>
-                {
-                    let dir,bfr,dif,rot; dir=e.detail.direct; bfr=e.detail.buffer; dif=500;
-                    if((dir=="Fwd")&&((bfr[0].pos[2]-bfr[2].pos[2]) > dif)){return};
-                    if((dir=="Bck")&&((bfr[2].pos[2]-bfr[0].pos[2]) > dif)){return}; rot=this.driver.camra.rotation;
-                    this.driver.cntrl.target=(new THREE.Vector3(bfr[0].pos[0], bfr[0].pos[1], (bfr[0].pos[2]-dif)));
-                    this.driver.cntrl.update();
-                    this.driver.camra.setRotationFromEuler(rot);
-                });
+                // this.upon("CameraDolly",(e)=>
+                // {
+                //     let dir,bfr,dif,rot; dir=e.detail.direct; bfr=e.detail.buffer; dif=500;
+                //     if((dir=="Fwd")&&((bfr[0].pos[2]-bfr[2].pos[2]) > dif)){return};
+                //     if((dir=="Bck")&&((bfr[2].pos[2]-bfr[0].pos[2]) > dif)){return}; rot=this.driver.camra.rotation;
+                //     this.driver.cntrl.target=(new THREE.Vector3(bfr[0].pos[0], bfr[0].pos[1], (bfr[0].pos[2]-dif)));
+                //     this.driver.cntrl.update();
+                //     this.driver.camra.setRotationFromEuler(rot);
+                // });
 
 
                 upon("ResizeEnd",()=>{this.resync()});
@@ -276,8 +276,11 @@
 
                                 this.geomet.setAttribute("position",(new THREE.Float32BufferAttribute(vrt,3)));
                                 this.partic = (new THREE.Points(this.geomet,this.materi));
-                                this.source.driver.scene.add(this.partic);
                                 this.recent = {over:VOID};
+                                this.source.driver.scene.add(this.partic);
+                                this.source.driver.scene.fog = (new THREE.FogExp2(0x000000,0.001));
+
+
                                 this.source.listen("beforeRender",()=>
                                 {
                                     let hvr,idx; hvr=this.source.driver.rayca.intersectObject(this.partic);

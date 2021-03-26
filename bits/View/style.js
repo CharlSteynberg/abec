@@ -62,12 +62,12 @@
             {
                 display:inline-block; position:relative;
                 min-width:9px; min-height:9px;
-                background:hsla(0,0%,50%,0.1);
-                padding-left:0.5rem; padding-right:0.5rem; margin:0.5rem;
+                background:hsla(0,0%,50%,0.5);
                 text-align:center; color:hsla(0,0%,70%,1); text-shadow:0px 0px 1px hsla(0,0%,0%,0.2);
                 white-space:nowrap !important;
-                border:0.1rem solid hsla(0,0%,70%,1); border-radius:0.3rem !important;
-                box-shadow:0px 0px 0.3rem hsla(0,0%,0%,0.15);
+                border:0.1rem solid hsl(0,0%,50%); border-radius:0.3rem;
+                box-shadow:0px 0px 0.3rem hsla(0,0%,0%,0.2);
+                text-shadow:0px 0px 0.1rem hsla(0,0%,0%,0.1);
                 cursor:pointer; user-select:none;
             }
 
@@ -205,7 +205,11 @@
                 let cp,fs,lh,ro; cp=cn.padd(mx); fs=((cn/10)*2); lh=((fs/3)*4); ro={};
                 ro.assign
                 ({
-                    [("Hold"+cp)]:("width:"+fs+"rem; height:"+fs+"rem; min-width:"+fs+"rem; min-height:"+fs+"rem; max-width:"+fs+"rem; max-height:"+fs+"rem;"),
+                    [("Hold"+cp)]:("width:"+fs+"rem; height:"+fs+"rem; min-width:"+fs+"rem; min-height:"+fs+"rem; max-width:"+fs+"rem; max-height:"+fs+"rem; font-size:"+fs+"rem; line-height:"+lh+"rem;"),
+                    [("Rect"+cp)]:("width:"+fs+"rem; height:"+(fs/3)+"rem; min-width:"+fs+"rem; min-height:"+(fs/3)+"rem;"),
+                    [("Circ"+cp)]:("width:"+fs+"rem; height:"+fs+"rem; min-width:"+fs+"rem; min-height:"+fs+"rem; border-radius:"+(fs/2)+"rem;"),
+                    [("Wide"+cp)]:("width:"+fs+"rem; min-width:"+fs+"rem; max-width:"+fs+"rem;"),
+                    [("High"+cp)]:("height:"+fs+"rem; min-height:"+fs+"rem; max-height:"+fs+"rem;"),
                     [("Text"+cp)]:("font-size:"+fs+"rem; line-height:"+lh+"rem;"),
                     [("Line"+cp)]:("font-size:"+((fs/4)*3)+"rem; line-height:"+fs+"rem;"),
                     [("Icon"+cp)]:("font-size:"+fs+"rem; line-height:"+fs+"rem;"),
@@ -235,9 +239,9 @@
                 LM:`position:absolute; left:0px; top:50%; transform:translate(0%,-50%);`,
                 LT:`position:absolute; left:0px; top:0px;`,
 
-                MM:`transform:translate(-50%,-50%); left:50%; top:50%;`,
-                CM:`left:50%; top:50%; transform:translate(-50%,-50%);`,
-                MC:`transform:translate(-50%,-50%); left:50%; top:50%;`,
+                MM:`position:absolute; transform:translate(-50%,-50%); left:50%; top:50%;`,
+                CM:`position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);`,
+                MC:`position:absolute; transform:translate(-50%,-50%); left:50%; top:50%;`,
             })
             +"\n\n"+
             cssGrp(".span",range(0,gridBase),(cn,mx)=>
@@ -268,24 +272,31 @@
 
 
         // CSS :: tone :  input style
-        ornate(`toneTint`).with
-        (
-            cssGrp
-            (
-                ".tone",
+        ornate(`toneTint`).with((function(base,resl)
+        {
+            base.forEach((v,k)=>
+            {
+                let t,h; t=v.join(","); h=copyOf(v); h[2]=((((rtrim(h[2],"%"))*1)+10)+"%"); h=h.join(",");
+                resl[`.${k}`]=//obj
                 {
-                    Auto:{h:0,s:0,l:30},
-                    Harm:{h:0,s:100,l:60},
-                    Warn:{h:90,s:100,l:60},
-                    Good:{h:220,s:100,l:60},
-                    Need:{h:300,s:100,l:60},
-                },
-                (v,k)=>
+                    border:`0.15rem solid hsl(${t})`,
+                    color:`hsl(${t})`,
+                };
+                resl[`.${k}:hover`]=//obj
                 {
-                    dump(v);
-                }
-            )
-        );
+                    borderColor:`hsl(${h})`,
+                    color:`hsl(${h})`,
+                };
+            });
+            return resl;
+        })
+        ({
+            auto:[0,"0%","50%"],
+            harm:[0,"100%","60%"],
+            warn:[90,"100%","60%"],
+            good:[220,"100%","60%"],
+            need:[300,"100%","60%"],
+        },{}));
 
 
 
@@ -293,6 +304,7 @@
         ornate(`skinDark`).with
         ({
             ".AutoDark .bgtint": {backgroundColor:hsla(0,0,0,0.9)},
+            ".AutoDark butn":{backgroundColor:hsla(0,0,0,0.5)},
         });
 
 
@@ -301,6 +313,7 @@
         ornate(`skinLite`).with
         ({
             ".AutoLite .bgtint": {backgroundColor:hsla(0,0,100,0.9)},
+            ".AutoLite butn":{backgroundColor:hsla(0,0,90,0.5)},
         });
     })};
 // ----------------------------------------------------------------------------------------------------------------------------
