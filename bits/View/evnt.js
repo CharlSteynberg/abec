@@ -154,7 +154,7 @@ dump(elem.uuid);
 
             if(!!elem) // is something and is not the same as last .. changed focus
             {
-                dump("olo");
+                // dump("olo");
                 vars({View:{focusObj:{prev:crnt,crnt:elem}}});
                 signal("focuschange",vars("View/focusObj")); return;
             };
