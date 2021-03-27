@@ -1,3 +1,12 @@
+/*****************************************\
+
+    THIS IS EXPECTED TO RUN IN NODE.JS
+    run: > node ./build
+
+\*****************************************/
+
+
+
 // init :: (prep) : prepare the environment
 // ----------------------------------------------------------------------------------------------------------------------------
     process.chdir(__dirname);
@@ -5,8 +14,8 @@
 
     Main.Fsys = require("fs");
     Main.Bash = require("child_process");
-    Main.Ugly = require("uglify-js");
-    Main.Root = "../bits";
+    // Main.Ugly = require("uglify-js");
+    Main.Root = "./bits";
 
     Main.pget = function pget(p,o)
     {
@@ -44,7 +53,7 @@
 // exec :: (combine) : funnel all constituents into 1 file
 // ----------------------------------------------------------------------------------------------------------------------------
     console.log("\nadding : Main");
-    Main.Abec = require(Root+"/Main/.js");
+    Main.Abec = Ugly.minify(require(Root+"/Main/.js"));
 
     pget("/",["Main","Conf","Libs"]).forEach((stem)=>
     {
@@ -71,12 +80,12 @@
 // ----------------------------------------------------------------------------------------------------------------------------
     if((typeof Abec)=="string")
     {
-        pset("../dist/abec.min.js",Abec);
+        pset("./dist/abec.min.js",Abec);
         let path = (Bash.execSync("which node",{encoding:"utf8"})+"").trim();
-        let code = pget("../dist/abec"); code=code.split("#!/usr/bin/node").join("#!"+path);
-        pset("../dist/abec",code);
+        let code = pget("./dist/abec"); code=code.split("#!/usr/bin/node").join("#!"+path);
+        pset("./dist/abec",code);
 
-        console.log("\nabec build ... DONE\n");
+        console.log("\nabec build ... DONE\n..all squashed into ./dist/abec.min.js\nhave fun ;)\n");
     }
     else
     {

@@ -1,3 +1,0 @@
-#!/usr/bin/bash
-sudo ln -s -r ./abec /usr/local/bin/abec
-echo "done"

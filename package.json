@@ -5,8 +5,8 @@
   "description": "Abstract Bios Evolution Core",
   "main": "index.js",
   "scripts": {
-    "build": "node ./dist/build",
-    "test": "node ./dist/test"
+    "build": "node ./build",
+    "test": "node ./packTest"
   },
   "bin":"dist/abec",
   "repository": {

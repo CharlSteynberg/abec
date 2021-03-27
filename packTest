@@ -1,3 +1,12 @@
+/*****************************************\
+
+    THIS IS EXPECTED TO RUN IN NODE.JS
+    run: > node ./packTest
+
+\*****************************************/
+
+
+
 require(`./abec.min.js`);
 
 (function testMain()
