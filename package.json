@@ -1,6 +1,6 @@
 {
   "name": "abec",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "os":["!win32"],
   "description": "Abstract Bios Evolution Core",
   "main": "index.js",
@@ -8,6 +8,7 @@
     "build": "node ./dist/build",
     "test": "node ./dist/test"
   },
+  "bin":"dist/abec",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CharlSteynberg/abec.git"

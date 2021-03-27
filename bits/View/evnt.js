@@ -142,6 +142,7 @@
             signal("tick");
             if(!elem && !crnt){return}; // is nothing and was nothing
             if(!!elem && !elem.uuid){extend(elem)({uuid:hash(md5)})}; // needed for comparison below
+
 dump(elem.uuid);
             if((!!elem && !!crnt) && (elem.uuid===crnt.uuid)){return}; // same element is still focussed
 
