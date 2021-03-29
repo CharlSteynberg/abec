@@ -1,14 +1,16 @@
 {
   "name": "abec",
   "version": "1.0.20",
-  "os":["!win32"],
+  "os": [
+    "!win32"
+  ],
   "description": "Abstract Bios Evolution Core",
   "main": "index.js",
   "scripts": {
     "build": "node ./build",
     "test": "node ./packTest"
   },
-  "bin":"dist/abec",
+  "bin": "dist/abec",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CharlSteynberg/abec.git"
@@ -27,10 +29,9 @@
   "dependencies": {
     "uglify-js": "^3.13.2"
   },
-  "directories":
-  {
-      "bits":"./bits",
-      "dist":"./dist",
-      "test":"./test"
+  "directories": {
+    "bits": "./bits",
+    "dist": "./dist",
+    "test": "./test"
   }
 }

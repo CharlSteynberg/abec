@@ -107,7 +107,7 @@
 // ----------------------------------------------------------------------------------------------------------------------------
     defn("A B C D E F G H I J K L M N O P Q R S T U V W X Y Z");
     defn("OK NA TL TM TR RT RM RB BR BM BL LB LM LT MM");
-    defn("ANY ALL ASC DSC");
+    defn("ANY ALL ASC DSC GET SET RIP");
     defn("INIT AUTO COOL DARK LITE INFO GOOD NEED WARN FAIL NEXT SKIP STOP DONE ACTV NONE BUSY KEYS VALS ONCE EVRY BFOR AFTR");
     defn("UNTL EVNT FILL TILE SPAN OPEN SHUT SELF VERT HORZ DEEP OKAY DUMP PROC FILE");
     defn("CLIENT SERVER SILENT UNIQUE COPIES FORCED PARTED EXCEPT");
@@ -588,16 +588,16 @@
 
 
 
-// func :: bore : get/set/rip keys of objects by dot -or slash delimiter
+// func :: func : make function dynamically
 // ----------------------------------------------------------------------------------------------------------------------------
-    hard(function bore(o,k,v)
+    hard(function func(nme,arg,bdy,ctx)
     {
-        if(((typeof k)!='string')||(k.trim().length<1)||isin(k,"*")){return}; // invalid
-        if(seen("/",k)&&!seen(".",k)){k=k.split("/").join(".")}; // slashes to dots
-        let t=""; k.split(".").forEach((i)=>{t+=(!isNaN(i)?`[${i}]`:`.${i}`)}); k=t;
-        if(v===VOID){return (new Function("a",`try{return a${k}}catch(e){return}`))(o)}; // get
-        if(v===NULL){(new Function("a",`try{delete a.${k}}catch(e){return}`))(o); return TRUE}; // rip
-        (new Function("a","z",`try{a.${k}=z}catch(e){return}`))(o,v); return TRUE; // set
+        if(isText(nme)&&!isWord(nme)&&!arg&&!bdy){bdy=(nme+""); nme="anon"; arg=[]};
+        if(isList(nme)&&isText(arg)){if(bdy){ctx=bdy}; bdy=arg; arg=nme; nme="anon"};
+        if(!expect.word(nme)){return}; if(!expect.text(bdy)){return};
+        if(!isList(arg)){arg=[arg]}; arg=arg.join(",");
+        let rsl = mean(`function ${nme}(${arg})\n{\n${bdy}\n}`);
+        if(ctx){rsl=rsl.bind(ctx)}; return rsl;
     });
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -895,7 +895,7 @@
 
 
 
-// shiv :: (Object.forEach) : expected functionality with added benefit: it stops when it should
+// shiv :: (Object.forEach) : expected functionality with added benefits: it stops when it should .. `this` is the subject
 // ----------------------------------------------------------------------------------------------------------------------------
    extend(Object.prototype)
    ({
@@ -903,11 +903,61 @@
        {
            for(let k in this)
            {
-               if(!this.hasOwnProperty(k)){continue}; if(MAIN.HALT){moan("forEach halted"); break};
+               if(!this.hasOwnProperty(k)){continue}; if(unstable("forEach")){break};
                let r=cb.apply(this,[this[k],k]); if(r===STOP){break};
            };
        },
    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// shiv :: (Object.padd) : add text to left/right of key-names
+// ----------------------------------------------------------------------------------------------------------------------------
+   extend(Object.prototype)
+   ({
+       padd:function padd(l,r)
+       {
+          if(isVoid(l)){l=""}; if(isVoid(r)){r=""}; let z={};
+          this.forEach((v,k)=>{k=(l+k+r); z[k]=v});
+          return z;
+       },
+   });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// func :: bore : get/set/rip keys of objects by dot -or slash delimiter
+// ----------------------------------------------------------------------------------------------------------------------------
+    extend(Object.prototype)
+    ({
+        bore:function bore(p,v,w)
+        {
+            if(((typeof p)!="string")||(p.trim().length<1)||isin(p,"*")){return}; // invalid
+            if(seen("/",p)&&!seen(".",p)){p=p.split("/").join(".")}; let m="invalid bore option .. expecting any";  // validate
+            let o,t,q,d,s,z; o=[GET,SET,RIP]; t=""; q=this; if(isText(w)&&!isWrap(w,":")){w=(":"+upperCase(w)+":")};// validate
+            w=(w||((v===VOID)?GET:((v===NULL)?RIP:SET))); if(!isin(o,w)){fail(m+" of these: "+o.join(" ")); return}; // invalid
+
+            s=this; z=span(p,"."); p.split(".").forEach((i,x)=> // .. `foo.3.1` -> `foo[3][1]`
+            {
+                if(!isNaN(i)&&isList(q)){i=(i*1)}; t+=(isNumr(i)?("["+i+"]"):("."+i)); d=(isin(".[",t.slice(0,1))?"":".");
+                t=t.trim(); if((t==="")||(t===".")){dump("bore ignored: "+p); return};
+                if((w==SET)&&(x<z)&&(q[i]===VOID)){q[i]=(isKnob(q)?{}:[]); func(["a"],`this${d}${t}=a`,s)(q[i])};
+                q=(q||{})[i];
+            });
+
+            if(w == GET){return q}; // select
+            if(w == RIP){func(`try{delete this${d}${t}}catch(e){}`); return TRUE}; // delete
+            func(["a"],`this${d}${t}=a`,s)(v); return TRUE;  // define/update
+        },
+    });
+
+    hard(function bore(o,p,v)
+    {
+        return o.bore(p,v);
+    });
 // ----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -924,13 +974,27 @@
 
 
 
+// func :: unstable :
+// ----------------------------------------------------------------------------------------------------------------------------
+    hard(function unstable(a,f)
+    {
+        if(!MAIN.HALT){return FALS}; if(!isText(a,1)){return};
+        moan("`"+a+"` was running in unstable conditions");
+        if(isFunc(f)){f()}; return a;
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
 // func :: fail : trigger error
 // ----------------------------------------------------------------------------------------------------------------------------
     extend(MAIN)
     ({
         fail:function fail(m, a,n,f,l,s,p,o)
         {
-           if(MAIN.HALT){return}; MAIN.HALT=1; if(MAIN.Busy){Busy.tint('red')}; tick.after(2000,()=>{MAIN.HALT=0});
+           for(let flx in tick.timer){if(!tick.timer.hasOwnProperty(flx)){continue}; cancel(tick.timer[flx])};
+           if(MAIN.HALT){return}; MAIN.HALT=1; if(MAIN.Busy){Busy.tint('red')}; tick.after(3000,()=>{MAIN.HALT=0});
            if(wrapOf(m)=="{}"){m=JSON.parse(m);};
            if(isText(m))
            {
@@ -1080,14 +1144,12 @@
             extend(o.upon)({events:{}});
         };
 
-        if(!o.listen){extend(o)({listen:function listen(en,cb,bl){return this.upon(en,cb,bl)}})};
-        if(!o.on){extend(o)({on:function on(en,cb,bl){return this.upon(en,cb,bl)}}); extend(o.on)({heralded:TRUE})};
+        if(!o.listen){extend(o)({listen:function listen(en,cb,bl){let me=(this||MAIN); return me.upon(en,cb,bl)}})};
+        if(!o.on){extend(o)({on:function on(en,cb,bl){let me=(this||MAIN); return me.upon(en,cb,bl)}}); extend(o.on)({heralded:TRUE})};
 
         if(!o.when){extend(o)({when:function when(en,bl)
         {
-            if(!this){fail("context issue .. `this` is undefined in heralded object.when"); return};
-            enthen(this,function(cb){return this.upon(en,cb,bl)});
-            return this;
+            return enthen((this||MAIN),function(cb){return this.upon(en,cb,bl)});
         }})};
 
 
@@ -1108,7 +1170,7 @@
             let me=(this||MAIN);
             if(me.dispatchEvent){me.dispatchEvent((new CustomEvent(en,{detail:ev})))}
             else{(me.upon.events[en]||[]).forEach((cb)=>{cb.apply(me,[{detail:ev}])})};
-            enthen(me,function(cb){after(1)(()=>{cb.apply(this,[])}); return this});
+            enthen(me,function(cb){after(0)(()=>{cb.apply(this,[])}); return this});
             return me;
         }})};
 
@@ -1133,6 +1195,18 @@
 
 
 
+// func :: cancel : stop any event or timer
+// ----------------------------------------------------------------------------------------------------------------------------
+    hard(function cancel(tgt)
+    {
+        if(isKnob(tgt)&&isFunc(tgt.preventDefault)&&isFunc(tgt.stopPropagation))
+        {tgt.preventDefault(); tgt.stopPropagation(); tgt.stopImmediatePropagation(); return true};
+        try{clearInterval(tgt)}catch(e){}; try{clearTimeout(tgt)}catch(e){}; return true;
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
 
 // func :: tick : nice syntax for setTimeout and setInterval
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -1140,12 +1214,21 @@
     ({
         tick:
         {
+            timer:{},
+
+            liven:function liven(t)
+            {
+                let h=hash(); tick.timer[h]=t;
+                return tick.timer[h];
+            },
+
+
             after:function after(frst,scnd)
             {
                 if(isFrac(frst)){frst=Math.floor(frst*1000)}; // fraction to seconds
                 if(!isFunc(scnd)){moan("2nd arg must be a function"); return}; // validation
 
-                if(isNumr(frst)){let timr=setTimeout(scnd,frst); return timr}; // simple timeout
+                if(isNumr(frst)){return tick.liven(setTimeout(scnd,frst))}; // simple timeout
                 if(isFunc(frst)&&isFunc(scnd)){scnd(frst());}; // syntax sugar
             },
 
@@ -1159,17 +1242,17 @@
                 if(isNumr(frst))
                 {
                     lmit=slow; if(!lmit){return setInterval(scnd,frst)}; // simple interval
-                    let timr=setInterval(()=>{scnd(); lmit--; if(lmit<0){clearInterval(timr)};},frst);
+                    let timr=tick.liven(setInterval(()=>{scnd(); lmit--; if(lmit<0){clearInterval(timr)};},frst));
                     return timr;
                 };
 
                 if(isFunc(frst)&&isFunc(scnd))
                 {
-                    let timr=setInterval(()=>
+                    let timr = tick.liven(setInterval(()=>
                     {
                         if(lmit!==null){lmit--; if(lmit<0){clearInterval(timr); return}};
                         let resl=frst(); if(resl||(resl===0)){scnd(resl)};
-                    },slow);
+                    },slow));
                     return timr;
                 };
             },
@@ -1181,11 +1264,11 @@
                 if(!isFunc(scnd)){fail("2nd arg must be a function"); return}; // validation
                 if(!isInum(slow)||(slow<0)){slow=0}; if(!isInum(lmit)||(lmit<0)){lmit=null};
 
-                let timr=setInterval(()=>
+                let timr = tick.liven(setInterval(()=>
                 {
                     if(lmit!==null){lmit--; if(lmit<0){clearInterval(timr); return}};
                     let resl=frst(); if(resl||(resl===0)){clearInterval(timr); scnd(resl);};
-                },slow);
+                },slow));
                 return timr;
             },
         },
@@ -1200,13 +1283,6 @@
             if(isWord(a)){return upon(a,b)};
             return tick.until(a,b);
         }}},
-    });
-
-    hard(function cancel(tgt)
-    {
-        if(isKnob(tgt)&&isFunc(tgt.preventDefault)&&isFunc(tgt.stopPropagation))
-        {tgt.preventDefault(); tgt.stopPropagation(); tgt.stopImmediatePropagation(); return true};
-        try{clearInterval(tgt)}catch(e){}; try{clearTimout(tgt)}catch(e){}; return true;
     });
 // ----------------------------------------------------------------------------------------------------------------------------
 

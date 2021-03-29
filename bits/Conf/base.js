@@ -30,6 +30,7 @@
             cssTheme: "AutoDark",
             gridBase: 60,
 
+            guiClock: 10,
 
             autoExec:
             {

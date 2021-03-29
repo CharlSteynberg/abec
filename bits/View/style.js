@@ -9,7 +9,6 @@
         // vars :: local : to use in this context
         var gridBase = (conf("View/gridBase")+1);
 
-
         // CSS :: htmlAuto : normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css
         ornate(`htmlAuto`,`aHRtbHtsaW5lLWhlaWdodDoxLjE1Oy13ZWJraXQtdGV4dC1zaXplLWFkanVzdDoxMDAlfWJvZHl7bWFyZ2luOjB9bWFpbntkaXNwbGF5OmJsb2NrfWgxe2ZvbnQtc2l6ZToyZW07bWFyZ2luOjAuNjdlbSAwfWhye2JveC1zaXppbmc6Y29udGVudC1ib3g7aGVpZ2h0OjA7b3ZlcmZsb3c6dmlzaWJsZX1wcmV7Zm9udC1mYW1pbHk6bW9ub3NwYWNlLCBtb25vc3BhY2U7Zm9udC1zaXplOjFlbX1he2JhY2tncm91bmQtY29sb3I6dHJhbnNwYXJlbnR9YWJiclt0aXRsZV17Ym9yZGVyLWJvdHRvbTpub25lO3RleHQtZGVjb3JhdGlvbjp1bmRlcmxpbmU7dGV4dC1kZWNvcmF0aW9uOnVuZGVybGluZSBkb3R0ZWR9YixzdHJvbmd7Zm9udC13ZWlnaHQ6Ym9sZGVyfWNvZGUsa2JkLHNhbXB7Zm9udC1mYW1pbHk6bW9ub3NwYWNlLCBtb25vc3BhY2U7Zm9udC1zaXplOjFlbX1zbWFsbHtmb250LXNpemU6ODAlfXN1YixzdXB7Zm9udC1zaXplOjc1JTtsaW5lLWhlaWdodDowO3Bvc2l0aW9uOnJlbGF0aXZlO3ZlcnRpY2FsLWFsaWduOmJhc2VsaW5lfXN1Yntib3R0b206LTAuMjVlbX1zdXB7dG9wOi0wLjVlbX1pbWd7Ym9yZGVyLXN0eWxlOm5vbmV9YnV0dG9uLGlucHV0LG9wdGdyb3VwLHNlbGVjdCx0ZXh0YXJlYXtmb250LWZhbWlseTppbmhlcml0O2ZvbnQtc2l6ZToxMDAlO2xpbmUtaGVpZ2h0OjEuMTU7bWFyZ2luOjB9YnV0dG9uLGlucHV0e292ZXJmbG93OnZpc2libGV9YnV0dG9uLHNlbGVjdHt0ZXh0LXRyYW5zZm9ybTpub25lfVt0eXBlPSJidXR0b24iXSxbdHlwZT0icmVzZXQiXSxbdHlwZT0ic3VibWl0Il0sYnV0dG9uey13ZWJraXQtYXBwZWFyYW5jZTpidXR0b259W3R5cGU9ImJ1dHRvbiJdOjotbW96LWZvY3VzLWlubmVyLFt0eXBlPSJyZXNldCJdOjotbW96LWZvY3VzLWlubmVyLFt0eXBlPSJzdWJtaXQiXTo6LW1vei1mb2N1cy1pbm5lcixidXR0b246Oi1tb3otZm9jdXMtaW5uZXJ7Ym9yZGVyLXN0eWxlOm5vbmU7cGFkZGluZzowfVt0eXBlPSJidXR0b24iXTotbW96LWZvY3VzcmluZyxbdHlwZT0icmVzZXQiXTotbW96LWZvY3VzcmluZyxbdHlwZT0ic3VibWl0Il06LW1vei1mb2N1c3JpbmcsYnV0dG9uOi1tb3otZm9jdXNyaW5ne291dGxpbmU6MXB4IGRvdHRlZCBCdXR0b25UZXh0fWZpZWxkc2V0e3BhZGRpbmc6MC4zNWVtIDAuNzVlbSAwLjYyNWVtfWxlZ2VuZHtib3gtc2l6aW5nOmJvcmRlci1ib3g7Y29sb3I6aW5oZXJpdDtkaXNwbGF5OnRhYmxlO21heC13aWR0aDoxMDAlO3BhZGRpbmc6MDt3aGl0ZS1zcGFjZTpub3JtYWx9cHJvZ3Jlc3N7dmVydGljYWwtYWxpZ246YmFzZWxpbmV9dGV4dGFyZWF7b3ZlcmZsb3c6YXV0b31bdHlwZT0iY2hlY2tib3giXSxbdHlwZT0icmFkaW8iXXtib3gtc2l6aW5nOmJvcmRlci1ib3g7cGFkZGluZzowfVt0eXBlPSJudW1iZXIiXTo6LXdlYmtpdC1pbm5lci1zcGluLWJ1dHRvbixbdHlwZT0ibnVtYmVyIl06Oi13ZWJraXQtb3V0ZXItc3Bpbi1idXR0b257aGVpZ2h0OmF1dG99W3R5cGU9InNlYXJjaCJdey13ZWJraXQtYXBwZWFyYW5jZTp0ZXh0ZmllbGQ7b3V0bGluZS1vZmZzZXQ6LTJweH1bdHlwZT0ic2VhcmNoIl06Oi13ZWJraXQtc2VhcmNoLWRlY29yYXRpb257LXdlYmtpdC1hcHBlYXJhbmNlOm5vbmV9Ojotd2Via2l0LWZpbGUtdXBsb2FkLWJ1dHRvbnstd2Via2l0LWFwcGVhcmFuY2U6YnV0dG9uO2ZvbnQ6aW5oZXJpdH1kZXRhaWxze2Rpc3BsYXk6YmxvY2t9c3VtbWFyeXtkaXNwbGF5Omxpc3QtaXRlbX10ZW1wbGF0ZXtkaXNwbGF5Om5vbmV9W2hpZGRlbl17ZGlzcGxheTpub25lfQ==`);
 
@@ -246,7 +245,15 @@
             +"\n\n"+
             cssGrp(".span",range(0,gridBase),(cn,mx)=>
             {
-                let cp,mp,ro,cx; cp=cn.padd(mx); ro={};
+                let cp,ro,cx,uv; cp=cn.padd(mx); ro={};
+                uv=Math.ceil(((mx<=100)?(cn/100):(100/cn))*100);
+
+                ro.assign
+                ({
+                    [`XX${cp}`]:`width:${uv}vw;`,
+                    [`YY${cp}`]:`height:${uv}vh;`,
+                    [`XY${cp}`]:`width:${uv}vw; height:${uv}vh`,
+                });
 
                 if((cn<10)||isInum(cn/10)||isInum(cn/12)||isInum(cn/15))
                 {
@@ -300,11 +307,47 @@
 
 
 
+        // CSS :: cssEffects : various effects
+        ornate(`cssEffects`).with
+        (
+            cssGrp(".blurBD",range(0,gridBase),(cn,mn)=>
+            {
+                let pn,ro,an; pn=cn.padd(mn); ro={}; an=(cn/10);
+                ro[pn]=`backdrop-filter: blur(${an}rem);`;
+                return ro;
+            })
+            // +"\n\n"+
+            // cssGrp(".glow",range(0,gridBase),(cn,mn)=>
+            // {
+            //     let pn,ro,bn; pn=cn.padd(mn); ro={}; bn=(cn/10);
+            //     let tn,tr; tr=(360/gridBase); tn=(cn*tr);
+            //     if(360 % gridBase){moan("invalid gridbase!"); return};
+            //
+            //
+            //     ro[pn]=`box-shadow: 0px 0px ${an}rem hsla(0,0,100,0,1);`;
+            //     return ro;
+            // })
+        );
+
+
+
         // CSS :: skinDark :  theme
         ornate(`skinDark`).with
         ({
-            ".AutoDark .bgtint": {backgroundColor:hsla(0,0,0,0.9)},
             ".AutoDark butn":{backgroundColor:hsla(0,0,0,0.5)},
+
+            ".AutoDark .bgtint":
+            {
+                backgroundColor: hsla(0,0,0,0.7),
+                backdropFilter: `blur(0.1rem)`,
+            },
+
+            ".AutoDark .softEdge":
+            {
+                border: `0.1rem solid hsla(0,0%,100%,0.5)`,
+                borderRadius: `0.3rem`,
+                boxShadow:`0px 0px 0.3rem hsla(0,0%,0%,1)`,
+            },
         });
 
 

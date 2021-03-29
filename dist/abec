@@ -48,7 +48,7 @@ defn
 
             durl: function durl(src,dst)
             {
-                let rsl = endurl(src);
+                let rsl = endurl(src); if(!isPath(dst)){dst=(src+".b64")};
                 disk.writeFile(dst,rsl);
                 dump(OK);
             },

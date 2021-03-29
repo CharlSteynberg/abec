@@ -381,8 +381,9 @@
         hard(function parlay(dfn)
         {
             let lay=create({view:`.parlay .bgtint`, tabindex:-1, $:dfn});
-            lay.listen("KeyDown",function(btn){dump(btn)});
-            BODY.insert(lay); after(10)(()=>{lay.focus()});
+            lay.listen("KeyEscape",(e)=>{remove(e.target)});
+            BODY.insert(lay); after(0)(()=>{lay.focus()});
+            return lay;
         });
     };
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -14,7 +14,7 @@
 
     Main.Fsys = require("fs");
     Main.Bash = require("child_process");
-    // Main.Ugly = require("uglify-js");
+    Main.Ugly = require("uglify-js");
     Main.Root = "./bits";
 
     Main.pget = function pget(p,o)
@@ -50,10 +50,11 @@
 
 
 
+
 // exec :: (combine) : funnel all constituents into 1 file
 // ----------------------------------------------------------------------------------------------------------------------------
     console.log("\nadding : Main");
-    Main.Abec = Ugly.minify(require(Root+"/Main/.js"));
+    Main.Abec = require(Root+"/Main/.js");
 
     pget("/",["Main","Conf","Libs"]).forEach((stem)=>
     {
@@ -68,27 +69,30 @@
 
 
 
-// exec :: (minify) : make it smaller
+
+// exec :: (output) : write raw Abec to ./dist/abec.max.js file .. for reflection testing
 // ----------------------------------------------------------------------------------------------------------------------------
-    // Abec = Ugly.minify(Abec);
-    // if(Abec.error){console.log(Abec.error);}else{Abec = Abec.code};
+    pset("./dist/abec.max.js",Abec);
 // ----------------------------------------------------------------------------------------------------------------------------
 
 
 
-// exec :: (output) : write result to file
+
+// exec :: (output) : write minified Abec to file
 // ----------------------------------------------------------------------------------------------------------------------------
-    if((typeof Abec)=="string")
+    // Abec = Ugly.minify(Abec); // TODO :: fix this : it breaks the library!
+    Abec = {code:Abec}; console.log("\n! errors prevented .. code not minified"); // TODO :: hack : remove this line once fixed
+
+    if(Abec.error){console.log(Abec.error);}
+    else
     {
+        Abec = Abec.code;
+
         pset("./dist/abec.min.js",Abec);
         let path = (Bash.execSync("which node",{encoding:"utf8"})+"").trim();
         let code = pget("./dist/abec"); code=code.split("#!/usr/bin/node").join("#!"+path);
         pset("./dist/abec",code);
 
-        console.log("\nabec build ... DONE\n..all squashed into ./dist/abec.min.js\nhave fun ;)\n");
-    }
-    else
-    {
-        console.log("\nabec build ... FAIL\n");
+        console.log("\nall gone into\n ./dist/abec.max.js\n ./dist/abec.min.js\n\nhave fun ;)\n");
     };
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -616,15 +616,12 @@
     ({
         vars:function vars(arg,alo)
         {
-            let frm=stak(0); if(!frm){wack(); return}; frm=rpart(frm," ")[0];
+            let frm,obj; frm=stak(0); if(!frm){wack(); return}; frm=rpart(frm," ")[0];
 
             if(isText(arg))
             {
                 arg=trim(arg); if(span(arg)<1){return};
-                if(!isin(keys(this),arg)){return}; // undefined
-                let obj=this[arg]; if(!obj){return};
-                if(!isin(obj.auth,frm)){moan(`only allowed for: `+text(obj.auth)); wack(); return};
-                return obj.data;
+                obj=this.data.bore(arg); return obj;
             };
 
             if(!expect.knob(arg,1)){return}; if(isText(alo,1)){alo=[alo]};
@@ -632,13 +629,12 @@
 
             arg.forEach((v,k)=>
             {
-                if(!isin(keys(this),k)){this[k]={auth:alo,data:v}; return};
-                if(!isin(this[k].auth,frm)){moan(`only allowed for: `+text(this[k].auth)); wack(); return STOP};
-                if(!isin(this[k].auth,frm)){this[k].auth.radd(frm)};
-                this[k].data=v;
+                let lst=this.auth.bore(k);
+                if((span(lst)>0)&&!isin(lst,frm)){moan(`only allowed for: `+text(lst)); wack(); return STOP};
+                this.auth.bore(k,alo); this.data.bore(k,v);
             });
         }
-        .bind({}),
+        .bind({auth:{},data:{}}),
     });
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -782,9 +778,17 @@
 // ----------------------------------------------------------------------------------------------------------------------------
     hard(function conf(arg)
     {
-        let cfg=vars("config"); if(!isKnob(cfg)){wack(); return};
-        if(isText(arg,1)){return bore(cfg,arg)};
-        if(isKnob(arg,1)){cfg=cfg.assign(arg); vars({config:cfg}); return TRUE};
+        if(isText(arg,1))
+        {
+            arg=trim(arg,"/"); arg=ltrim(arg,"config/"); arg=("config/"+(arg||":none:"));
+            return vars(arg)
+        };
+
+        if(isKnob(arg))
+        {
+            arg=arg.padd("config/");
+            return vars(arg);
+        };
     });
 // ----------------------------------------------------------------------------------------------------------------------------
 

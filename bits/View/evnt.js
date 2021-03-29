@@ -21,7 +21,7 @@
                     if((how!=SILENT)&&isin(this.keyCombo," "))
                     {
                         emit("KeyCombo",this.keyCombo); emit(this.keyCombo);
-                        ae=vars("View/focusObj/crnt"); if(!!ae){ae.emit(this.keyCombo)};
+                        ae=vars("View/lastFobj"); if(!!ae){ae.emit(this.keyCombo)};
                     };
                     return this.keyCombo;
                 },
@@ -31,7 +31,7 @@
         MAIN.upon("mousemove",function(e)
         {
             let na,oa,en,be,ae; be="MouseMove"; oa=device.vars.axis; na={x:e.clientX,y:e.clientY};
-            ae=vars("View/focusObj/crnt"); emit((be+"Any"),na); if(!!ae){ae.emit((be+"Any"),na)};
+            ae=vars("View/lastFobj"); emit((be+"Any"),na); if(!!ae){ae.emit((be+"Any"),na)};
             en=((na.x>oa.x)?"Rigt":((na.x<oa.x)?"Left":((na.y>oa.y)?"Down":((na.y<oa.y)?"Up":""))));
             if(!en){return}; en=(be+en); device.vars.axis=na; emit(en,na); if(!!ae){ae.emit(en,na)};
             device.vars.last="mouse"; if(device.vars.busy.mouse)
@@ -50,7 +50,7 @@
             el=me.target; bx=rect(el); ew=bx.width; eh=bx.height; sw=el.scrollWidth; sh=el.scrollHeight;
             d=((sw>ew)?((x>0)?R:((x<0)?L:M)):((sh>eh)?((y>0)?D:((y<0)?U:M)):M)); let z;
             a=((d==M)?M:(((d==L)||(d==R))?X:Y)); sl=el.scrollLeft; st=el.scrollTop;
-            p=round(((a==X)?((sl+ew)/sw):((st+eh)/sh)),1); ae=vars("View/focusObj/crnt");
+            p=round(((a==X)?((sl+ew)/sw):((st+eh)/sh)),1); ae=vars("View/lastFobj");
             z=round((a==M)?0:((a==X)?(sw-(sl+ew)):(sh-(st+eh)))); let crd=[x,y,d,a,p,z];
 
             emit("MouseWheel",crd); if(!!ae){ae.emit("MouseWheel",crd)};
@@ -64,7 +64,7 @@
         {
             let cb,en,ae; cb=((e.which<2)?"Left":((e.which==2)?"Middle":"Right")); device.vars.last="mouse";
             en=(cb+"Click"); device.vars.btns[en]=1; device.getCombo(); emit(en);
-            ae=vars("View/focusObj/crnt"); if(!!ae){ae.emit(en,cb)};
+            ae=vars("View/lastFobj"); if(!!ae){ae.emit(en,cb)};
             let tap=(device.vars.taps||0); tap++;
             if((cb!="Left")||(tap<2)){emit(en); return}; device.vars.taps=tap;
             if(device.vars.busy.tap){clearTimeout(device.vars.busy.tap)};
@@ -77,26 +77,26 @@
         {
             let cb,en,ae; cb=((e.which<2)?"Left":((e.which==2)?"Middle":"Right")); device.vars.last="mouse";
             en=("MouseUp"+cb); delete device.vars.btns[(cb+"Click")]; device.getCombo(SILENT); emit(en);
-            ae=vars("View/focusObj/crnt"); if(!!ae){ae.emit(en,cb)};
+            ae=vars("View/lastFobj"); if(!!ae){ae.emit(en,cb)};
         });
 
         MAIN.upon("keydown",function(e)
         {
             let cb,ae; cb=e.key; if(e.keyCode==91){cb="Meta";}else if(cb==" "){cb="Space"}; device.vars.last="keyboard";
-            device.vars.btns[cb]=1; device.getCombo(); emit("KeyDown",cb);
-            ae=vars("View/focusObj/crnt"); if(!!ae){ae.emit("KeyDown",cb)};
+            device.vars.btns[cb]=1; device.getCombo(); emit("KeyDown",cb); emit(("Key"+cb));
+            ae=vars("View/lastFobj"); if(!!ae){ae.emit("KeyDown",cb); ae.emit(("Key"+cb))};
         });
 
         MAIN.upon("keyup",function(e)
         {
             let cb,ae; cb=e.key; if(e.keyCode==91){cb="Meta";}else if(cb==" "){cb="Space"}; device.vars.last="keyboard";
             delete device.vars.btns[cb]; device.getCombo(); emit("KeyUp",cb);
-            ae=vars("View/focusObj/crnt"); if(!!ae){ae.emit("KeyUp",cb)};
+            ae=vars("View/lastFobj"); if(!!ae){ae.emit("KeyUp",cb)};
         });
 
         MAIN.upon("keypress",function(e)
         {
-            let cb,ae; cb=e.key; ae=vars("View/focusObj/crnt");
+            let cb,ae; cb=e.key; ae=vars("View/lastFobj");
             if(e.keyCode==91){cb="Meta";}else if(cb==" "){cb="Space"}; emit("KeyPress",cb); if(!!ae){ae.emit("KeyPress",cb)};
             device.vars.last="keyboard"; if(e.repeat){emit("KeyRepeat",cb); if(!!ae){ae.emit("KeyRepeat",cb)};};
             if(device.vars.busy.keyboard){clearTimeout(device.vars.busy.keyboard)}
@@ -133,34 +133,6 @@
 // ----------------------------------------------------------------------------------------------------------------------------
     if(CLIENTSIDE)
     {
-        tick.every(500,function domClock(elem,prev,crnt,fobj)
-        {
-            elem = document.activeElement;
-            prev = vars("View/focusObj/prev");
-            crnt = vars("View/focusObj/crnt");
-
-            signal("tick");
-            if(!elem && !crnt){return}; // is nothing and was nothing
-            if(!!elem && !elem.uuid){extend(elem)({uuid:hash(md5)})}; // needed for comparison below
-
-dump(elem.uuid);
-            if((!!elem && !!crnt) && (elem.uuid===crnt.uuid)){return}; // same element is still focussed
-
-            if(!elem && !!crnt) // is nothing and was something .. lost focus
-            {
-                vars({View:{focusObj:{prev:crnt,crnt:VOID}}});
-                signal("focuschange",vars("View/focusObj")); return;
-            };
-
-            if(!!elem) // is something and is not the same as last .. changed focus
-            {
-                // dump("olo");
-                vars({View:{focusObj:{prev:crnt,crnt:elem}}});
-                signal("focuschange",vars("View/focusObj")); return;
-            };
-        });
-
-
         upon("load",function prep()
         {
             if(seen("HEAD")){return}; // window.onload was triggered before
@@ -178,18 +150,35 @@ dump(elem.uuid);
                 return "webext";
             }())});
 
-            after(10)(()=>{emit("almostReady").then(()=>
+            emit("almostReady").then(()=>
             {
-                vars({config:copyOf(config)});
-                BODY.enclan(conf("View/cssTheme"));
-                emit("configReady").then(()=>
+                tick.after(10,function prep()
                 {
-                    loadFont(conf("View/iconFont"),"icon",{},()=>
+                    vars({config:copyOf(config)});
+                    tick.every(conf("View/guiClock"),function domClock(oref,crnt,prev,fobj)
                     {
-                        emit("allReady");
+                        oref = "View/lastFobj";
+                        crnt = document.activeElement;
+                        prev = vars(oref); signal("tick");
+                        fobj = {type:"gain",crnt:crnt,prev:prev};
+
+                        if(!!crnt && !crnt.uuid){extend(crnt)({uuid:hash(md5)})}; vars({[oref]:crnt}); // needed for below
+                        if((!crnt && !prev) || ((!!crnt&&!!prev)&&(crnt.uuid==prev.uuid))){return}; // no change
+                        if((!crnt && !!prev)){fobj.type="lost"}else if(!!crnt && !!prev){fobj.type="swap"}; // set type
+
+                        signal("focuschange",fobj);
+                    });
+
+                    BODY.enclan(conf("View/cssTheme"));
+                    emit("configReady").then(()=>
+                    {
+                        loadFont(conf("View/iconFont"),"icon",{},()=>
+                        {
+                            emit("allReady");
+                        });
                     });
                 });
-            })});
+            });
         });
     };
 // ----------------------------------------------------------------------------------------------------------------------------
