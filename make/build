@@ -23,7 +23,7 @@
         if(!p.startsWith("../")&&!p.startsWith("./")&&!p.startsWith("/")){p=("/"+p)};
         if(p.startsWith("/")){p=(Root+p)}; if(!Fsys.existsSync(p)){return};
         let d=Fsys.statSync(p).isDirectory(); let r;
-        r=(d?Fsys.readdirSync(p):(Fsys.readFileSync(p,{encoding:"utf8"})+"").trim());
+        r=(d?Fsys.readdirSync(p):(Fsys.readFileSync(p,{encoding:"utf8"})+""));
         if(!d||!o||!o.indexOf){return r}; // not a folder, or nothing to omit
         let z,t; z=[]; t=(typeof o).slice(0,3); r.forEach((i)=>
         {
@@ -80,8 +80,8 @@
 
 // exec :: (output) : write minified Abec to file
 // ----------------------------------------------------------------------------------------------------------------------------
-    // Abec = Ugly.minify(Abec); // TODO :: fix this : it breaks the library!
-    Abec = {code:Abec}; console.log("\n! errors prevented .. code not minified"); // TODO :: hack : remove this line once fixed
+    Abec = Ugly.minify(Abec); // TODO :: fix this : it breaks the library!
+    // Abec = {code:Abec}; console.log("\n! errors prevented .. code not minified"); // TODO :: hack : remove this line once fixed
 
     if(Abec.error){console.log(Abec.error);}
     else

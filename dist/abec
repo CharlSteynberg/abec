@@ -48,6 +48,7 @@ defn
 
             durl: function durl(src,dst)
             {
+                if(!(src+"").startsWith("./")&&!(src+"").startsWith("/")){src=("./"+src)};
                 let rsl = endurl(src); if(!isPath(dst)){dst=(src+".b64")};
                 disk.writeFile(dst,rsl);
                 dump(OK);

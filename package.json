@@ -8,7 +8,7 @@
   "main": "index.js",
   "scripts": {
     "build": "node ./build",
-    "test": "node ./packTest"
+    "test": "node ./test/abec.test.js"
   },
   "bin": "dist/abec",
   "repository": {
