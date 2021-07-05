@@ -161,7 +161,7 @@
             r={}; t.split("\n").forEach((l)=> // loop through each line .. keep
             {
                 l=l.trim(); if(!l){return}; // not interesting
-                let o=parsed(l,km,vm); // parsing of this line happens in the next code-block after this if/loop
+                let o=parsed(l); // parsing of this line happens in the next code-block after this if/loop
                 let k=length(r); // we're using this for key-name in case the parsed result is not an object
                 if(!isKnob(o)){r[k]=o; return}; // an object was not returned, so we've added it as array item
                 r.define(o); // this `define` is very useful
@@ -349,10 +349,11 @@
 // ----------------------------------------------------------------------------------------------------------------------------
     class device
     {
-        constructor(name)
+        constructor(name,conf)
         {
             this.define({name:name});
-            return this;
+            let resl = this.vivify(conf);
+            return resl;
         }
     }
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -588,13 +589,13 @@
     ({
         expose:function expose(a0,a1,a2)
         {
-
             let txt,tmp,dlm,frm,bgn,end;
 
             txt = (this+"");
             tmp = (a1+"");
+            dlm = txt.hasAny(a0+"");
 
-            if ((a0 === WRAP) && (a0 === VOID))
+            if ((a0 === WRAP) && (a1 === VOID))
             { a0=BGN; a1=END; }; // syntax sugar + convenience
 
             bgn = [BGN,FRST,BFOR];
@@ -603,13 +604,12 @@
             if (bgn.hasAny(a0) && end.hasAny(a1)) // return first and last characters .. to get text wrapper of e.g: `<foo>`
             { return (txt.slice(0,1) + txt.slice(-1)); };
 
-            if ((isText(a0)||isList(a0)) && (isVoid(tmp)||bgn.hasAny(tmp)||end.hasAny(tmp))) // .:  str.expose("delimiter");
+            if ((isText(a0)||isList(a0)) && (isVoid(a1)||bgn.hasAny(tmp)||end.hasAny(tmp)) && dlm) // .:  str.expose("|");
             {
-                dlm = txt.hasAny(a0);  frm = tmp; if(!frm){frm=BGN};
-                tmp = txt.split(dlm); if(!dlm){return tmp}; // each char
-                if (frm.hasAny(bgn)){bgn = tmp.shift();  end = tmp.join(dlm)}
-                else if (frm.hasAny(end)){end = tmp.pop();  bgn = tmp.join(dlm)};
-                return [bgn,dlm,end];
+                frm = a1; if(!frm){frm=BGN};  tmp = txt.split(dlm);
+                if (bgn.hasAny(frm)){bgn = tmp.shift();  end = tmp.join(dlm)}
+                else if (frm.hasAny(end)){end = tmp.pop();  bgn = tmp.join(dlm)}
+                else {return []}; return [bgn,dlm,end];
             };
 
             if (isText(a0,1) && isText(a1,1)) // .:  str.expose("begin","end");
