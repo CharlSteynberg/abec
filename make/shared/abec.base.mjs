@@ -99,6 +99,22 @@
 
 
 
+// func :: struct : returns an instance of a class named `name`
+// ----------------------------------------------------------------------------------------------------------------------------
+    const struct = function struct(attr)
+    {
+        let type = detect(attr);
+        let name = ((type == "text") ? attr : "plain");
+        let resl = (new Function(`class ${name}\n{\n}\nreturn new ${name}`))();
+
+        if (type == "knob"){ resl.define(attr) };
+        return resl;
+    };
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
 // func :: texted : returns text-version of anything given in `what`
 // ----------------------------------------------------------------------------------------------------------------------------
     const texted = function texted(what)
@@ -215,56 +231,83 @@
 
 // func :: expect : assert identifier-type -or fail .. returns boolean
 // ----------------------------------------------------------------------------------------------------------------------------
-    const expect = function expect(what,tobe)
+    const expect = function expect(what,tobe,func)
     {
-        if(!!tobe && !!tobe.indexOf)
+        if (!isFunc(func))
         {
-            if(tobe.indexOf(detect(what)) > -1){return TRUE};
-            throw `expecting ${tobe}`; return FALS;
+            func = function fulfil(type,tobe)
+            {
+                let resl = tobe.hasAny(type);  if (!!resl){return resl};
+                throw `expecting ${tobe}`; return FALS;
+            };
         };
 
-        return {as:function as(type)
+        if(!!tobe && !!tobe.hasAny)
         {
-            type=texted(type); if(type.hasAny(detect(what))){return TRUE};
-            throw `expecting ${type}`; return FALS;
-        }}
+            return func(detect(what),tobe);
+        };
+
+        return struct("methods").define
+        ({
+            as: function()
+            {
+                return func(detect(what),params(arguments));
+            },
+
+            tobe: function(that)
+            {
+                return (what === that);
+            },
+        });
     };
 // ----------------------------------------------------------------------------------------------------------------------------
 
 
 
 
-// tool :: symbol : use as system flag
-// ----------------------------------------------------------------------------------------------------------------------------
-    class symbol
-    {
-        constructor(name,data)
-        {
-            this.name = name;
-            this.data = (data || name);
-            return this;
-        }
-
-        toString()
-        {
-            return texted(this.data);
-        }
-    }
-// ----------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-// func :: hard/soft : returns hard/soft symbols
+// func :: hard/soft/trap : returns hard/soft/trap symbols
 // ----------------------------------------------------------------------------------------------------------------------------
     const hard = function hard(data)
     {
-        return (new symbol("hard",data));
+        let resl = struct("hard");
+        resl.data = data;
+        return resl;
     };
 
     const soft = function soft(data)
     {
-        return (new symbol("soft",data));
+        let resl = struct("soft");
+        resl.data = data;
+        return resl;
+    };
+
+    const trap = function trap(data)
+    {
+        let resl = struct("trap");
+        resl.data = data;
+        return resl;
+    };
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// func :: meta : returns object for trap-config
+// ----------------------------------------------------------------------------------------------------------------------------
+    const meta = function meta(what,defn)
+    {
+        if ((typeof what) != "string"){return}; // invalid
+        what = what.split(":").join("").toLowerCase(); // prevent mishaps and enhance API usability
+
+        if (what == "soft"){ return {enumerable:FALS, value:defn} };
+        if (what == "hard"){ return {configurable:FALS, enumerable:FALS, writable:FALS, value:defn} };
+        if (what == "trap")
+        {
+            let trap = {};  if ((typeof defn) != "function"){ defn=function(){} };
+            ("get set apply construct").split(" ").forEach((word)=>
+            { trap[word] = defn.rename(word) }); // for dynamic reflection .. renamed function according to each trap
+            return trap;
+        };
     };
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -273,38 +316,32 @@
 
 // shim :: Object.define : define properties .. shorhand for Object.defineProperty
 // ----------------------------------------------------------------------------------------------------------------------------
-    Object.defineProperty(Object.prototype,"define",{writable:FALS, enumerable:FALS, configurable:FALS, value:function define()
+    Object.defineProperty(Object.prototype, "define", meta("hard",function define()
     {
-        let defn,temp,name,hard,data,conf; defn = (arguments)[0];
+        let defn,temp,name,rigd,data;  defn=(arguments)[0]; // definition is first param
 
-        if (detect(defn) == "text")
+        if (detect(defn) == "text") // for words as flags
         {
-            temp = defn.trim().split("\n").trim().join(" ").split(" ");
-            defn = {};  temp.forEach((item)=>{defn[item]=(":"+item+":")});
+            temp = defn.trim().split("\n").trim().join(" ").split(" "); // sanitize
+            defn = {};  temp.forEach((item)=> // go through each, trim, validate, assign values as key-names wraped in ::
+            { item=item.trim(); if (!item){return}; defn[item]=(":"+item+":")});  temp=VOID; // clean up! .. still in context
         };
 
-        if (detect(defn) != "knob"){moan("expecting object"); return};
+        if (detect(defn) != "knob"){moan("expecting object"); return}; // you have died
 
-        for (name in defn)
+        for (name in defn) // defn is now an object .. validate and set rigitity
         {
-            if(!defn.hasOwnProperty(name)){continue};
-            if(!name){console.error("invalid property name"); continue}; // property validation
-
-            data = defn[name]; if((data instanceof symbol)){hard=(data.name=="hard"); data=data.data};
-
-            if(!hard)
-            {
-                this[name] = data;
-            }
-            else
-            {
-                delete this[name];
-                Object.defineProperty(this,name,{writable:FALS, configurable:FALS, enumerable:FALS, value:data});
-            };
+            if (!name || !defn.hasOwnProperty(name)){continue};  rigd="hard"; // property validation .. rigidity is `hard`
+            data = defn[name]; try{ delete this[name] }catch(e){}; // try remove before illegal-rename
+            temp = ((!!data && !!data.constructor) ? data.constructor.name : "!"); // name of possible constructor .. or not
+            if (("hard soft trap").indexOf(temp) > -1){ rigd=temp; data=data.data }; // implied rigidity structures with data
+            if (((typeof data)=="function") && !data.name){Object.defineProperty(data,"name",{value:name})}; // for debugging
+            Object.defineProperty(this, name, meta(rigd,data)); // apply definition .. if anything went wrong, check errors
         };
 
-        return this;
-    }});
+        defn=VOID; temp=VOID; name=VOID; rigd=VOID; data=VOID;  // clean up!
+        return this; // for your chainable pleasure ;)
+    }));
 // ----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -345,22 +382,6 @@
 
 
 
-// tool :: device
-// ----------------------------------------------------------------------------------------------------------------------------
-    class device
-    {
-        constructor(name,conf)
-        {
-            this.define({name:name});
-            let resl = this.vivify(conf);
-            return resl;
-        }
-    }
-// ----------------------------------------------------------------------------------------------------------------------------
-
-
-
-
 // func :: global : get/set global variables
 // ----------------------------------------------------------------------------------------------------------------------------
     MAIN.define({global:function global(defn)
@@ -370,7 +391,7 @@
 
         if (type == "text")
         {
-            // resl = (new Function(`try{return ${defn};}catch(e){};`))();
+            // resl = (new Function(`try{return ${defn};}catch(e){};`))(); // constants .. this won't work in module
             resl = MAIN[defn];
             return resl;
         };
@@ -386,6 +407,7 @@
 
     global
     ({
+        MAIN: MAIN,
         VOID: VOID,
         NULL: NULL,
         TRUE: TRUE,
@@ -400,20 +422,108 @@
         PROCTYPE: PROCTYPE,
         detect: detect,
         texted: texted,
+        struct: struct,
         parsed: parsed,
         params: params,
         expect: expect,
-        symbol: symbol,
         hard: hard,
-        device: device,
         soft: soft,
+        meta: meta,
     });
 // ----------------------------------------------------------------------------------------------------------------------------
 
 
 
 
-// func :: stable : check if environment is stable .. designed to run fast -as in .peruse
+// tool :: device
+// ----------------------------------------------------------------------------------------------------------------------------
+    global(class device
+    {
+        constructor(name)
+        {
+            this.source = struct(name+"Device").vivify();
+            this.source.define
+            ({
+                parent: this,
+                driver: {},
+                extend: function(defn)
+                {
+                    defn.peruse((val,key)=>
+                    {
+                        if (!(val instanceof driver)){ throw "expecting instanceof driver"; return };
+                        this.driver[key] = val;  // put the driver in a safe place
+                        this[key] = this.driver[key].vivify(this); // .. now `device.driver.method()` works as expected
+                    });
+
+                    return this;
+                }
+            });
+
+            return this.source;
+        }
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// tool :: driver : reactive proxy
+// ----------------------------------------------------------------------------------------------------------------------------
+    global(class driver
+    {
+        constructor(udev)
+        {
+            this.memory = {target:udev, status:"ready"};
+
+            this.config = // object
+            {
+                get:function(dev,key,obj, rsl)
+                {
+                    rsl = dev[key];  if (!isVoid(rsl) && !isFunc(rsl)){return rsl};
+                    if (key == "constructor"){ return rsl };  rsl=VOID;
+                    rsl = this.memory[key]; if (!isVoid(rsl)){return rsl};
+
+                    return function()
+                    {
+                        let arg = params(arguments),  syn = "Sync";
+                        if (!isFunc(arg.slice(-1)[0]) && !key.endsWith(syn) && isFunc(dev[(key+syn)])){key += syn};
+                        return dev[key](...arg);
+                    }
+                    .define({name:key});
+                }
+                .bind(this),
+
+                set:function(dev,key,val)
+                {
+                    dump(val,key,dev);
+                    // this.memory[key] = val;
+                }
+                .bind(this),
+            };
+
+            return this;
+        }
+
+
+        vivify(dev,cfg)
+        {
+            this.memory.device = dev;
+
+            if (!!cfg)
+            {
+                if (isFunc(cfg)){ cfg=meta("trap") };
+                if (isMeta(cfg)){ this.config = cfg };
+            };
+
+            return new Proxy(this.memory.target, this.config);
+        }
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// func :: stable : check if environment is stable .. designed to run fast as it is used in .peruse
 // ----------------------------------------------------------------------------------------------------------------------------
     global(function stable(name)
     {
@@ -465,24 +575,6 @@
             g=(g||0); l=(l||s);
             return ((s>=g) && (s<=l));
         }
-    });
-// ----------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-// func :: sha256 : secure hash algorithm 256
-// ----------------------------------------------------------------------------------------------------------------------------
-    global(function sha256(d)
-    {
-        function g(p,q){return p>>>q|p<<32-q} for(var c=Math.pow,m=c(2,32),a,r="",f=[],h=8*d.length,b=sha256.h=sha256.h||[],n=
-        sha256.k=sha256.k||[],k=n.length,l={},e=2;64>k;e++) if(!l[e]){for(a=0;313>a;a+=e)l[a]=e;b[k]=c(e,.5)*m|0;n[k++]=
-        c(e,1/3)*m|0} for(d+="\u0080";d.length%64-56;)d+="\x00";for(a=0;a<d.length;a++){c=d.charCodeAt(a);if(c>>8)return;
-        f[a>>2]|=c<<(3-a)%4*8}f[f.length]=h/m|0;f[f.length]=h;for(c=0;c<f.length;){d=f.slice(c,c+=16);m=b;b=b.slice(0,8);
-        for(a=0;64>a;a++)k=d[a-15],l=d[a-2],h=b[0],e=b[4],k=b[7]+(g(e,6)^g(e,11)^g(e,25))+(e&b[5]^~e&b[6])+n[a]+(d[a]=16>a?d[a]:
-        d[a-16]+(g(k,7)^g(k,18)^k>>>3)+d[a-7]+(g(l,17)^g(l,19)^l>>>10)|0),h=(g(h,2)^g(h,13)^g(h,22))+(h&b[1]^h&b[2]^b[1]&b[2]),
-        b=[k+h|0].concat(b),b[4]=b[4]+k|0;for(a=0;8>a;a++)b[a]=b[a]+m[a]|0}for(a=0;8>a;a++)
-        for(c=3;c+1;c--)f=b[a]>>8*c&255,r+=(16>f?0:"")+f.toString(16); return r;
     });
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -583,6 +675,41 @@
 
 
 
+// shiv :: String.shaved : trim either white-space or substring from begin -and/or end of a string
+// ----------------------------------------------------------------------------------------------------------------------------
+    String.prototype.define
+    ({
+        shaved: function shaved(b,e)
+        {
+            let t=(this+""); if(!isText(t,1)){return t};  if((b===VOID)&&(e===VOID)){return t.trim()}; // normal trim
+            if(e===VOID){e=b};  if(b===e){return t.rshave(t.lshave(t,b),e)}; // shave off substr from both sides
+
+            if(b&&!e){return t.lshave(b)};
+            if(e&&!b){return t.rshave(e)};
+
+            return t;
+        },
+
+        lshave: function rshave(c)
+        {
+            let t=(this+""); if(!isText(t,1)){return t}; if(c===VOID){return t.replace(/^\s+/g,"")};
+            if(isNumr(c)){c=(c+"")}; if(!isText(c)){return t}; let s=c.length; while(t.indexOf(c)===0){t=t.slice(s);};
+            return t;
+        },
+
+        rshave: function rshave(c)
+        {
+            let t=(this+""); if(!isText(t,1)){return t}; if(c===VOID){return t.replace(/\s+$/g,"")};
+            if(isNumr(c)){c=(c+"")}; if(!isText(c)){return t}; let s=c.length;
+            while(t.slice((0-s))==c){t=t.slice(0,(t.length-s));};
+            return t;
+        },
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
 // shim :: String.expose : wonderful string parsing tool
 // ----------------------------------------------------------------------------------------------------------------------------
     String.prototype.define
@@ -642,6 +769,31 @@
 
 
 
+// shim :: String.shuffle : pure and simple .. from here: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+// ----------------------------------------------------------------------------------------------------------------------------
+    String.prototype.define
+    ({
+        shuffle:function shuffle()
+        {
+            let s = (this+"").split("");
+            let n = s.length;
+
+            for(let i=(n-1); i>0; i--)
+            {
+                let x = Math.floor(Math.random() * (i+1));
+                let tmp = s[i];
+                s[i] = s[x];
+                s[x] = tmp;
+            };
+
+            return s.join("");
+        }
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
 // shim :: Function.expose : split up a function into its constituents
 // ----------------------------------------------------------------------------------------------------------------------------
     Function.prototype.define
@@ -650,19 +802,20 @@
         {
             let txt,prt,nme,aro,arg,bdy,rsl; txt=this.toString(); prt=txt.expose("{");
 
-            nme = prt[0].split("(")[0].split("function").trim(); aro=(nme?"":"=>");
+            nme = (prt[0].split("(")[0].split("function").pop()||"").trim();
+            aro = (nme?"":"=>");
             arg = prt[0].split(")")[0].split("(")[1].split(" ").join(""); arg=(arg?arg.split(","):[]);
-            bdy = prt[2].expose("}",END)[0].trim(); bdy=(bdy?bdy.split("\n"):[]);
-            rsl = {name:nme, args:arg, arro:aro, body:bdy};
+            bdy = prt[2].expose("}",END)[0].trim(); bdy=(bdy?bdy.split("\n"):[]).trim();
+            rsl = {nick:nme, args:arg, arro:aro, body:bdy};
 
-            rsl.toString = function toString()
+            rsl.define({toString:function()
             {
-                let aro,fun;   aro = this.arro;   fun = (aro ? "" : "function ");
-                return (fun+this.name+"("+this.args.join(",")+")"+aro+"\n{\n"+this.body.join("\n")+"\n};");
-            }.bind(rsl);
+                let aro,fun;   aro = (this.nick?"":"=>");   fun = (aro ? "" : "function ");
+                return (fun+this.nick+"("+this.args.join(",")+")"+aro+"\n{\n"+this.body.join("\n")+"\n};");
+            }});
 
-            if(what){rsl = rsl[what]};
-            return rsl;
+            if (!what){return rsl};
+            return rsl[what];
         },
     });
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -670,16 +823,45 @@
 
 
 
-// shim :: Object.peruse() : this also affects arrays
+// shim :: Object.peruse() : like `array.forEach()` -but safer
 // ----------------------------------------------------------------------------------------------------------------------------
     Object.prototype.define
     ({
         peruse:function peruse(cb)
         {
-            for(let k in this)
+            for (let k in this)
             {
-                if(!this.hasOwnProperty(k)){continue}; if(!stable("peruse")){break};
-                let r=cb.apply(this,[this[k],k]); if(r===STOP){break};
+                if (!stable("peruse")){break}; // break this loop if an error occurred globally
+                if (!this.hasOwnProperty(k)){continue}; // ignore proto's
+                if(cb.apply(this,[this[k],k]) === STOP){break}; // callback-params in same order as forEach
+            };
+        },
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// shim :: Object.rename() : rename anything
+// ----------------------------------------------------------------------------------------------------------------------------
+    Object.prototype.define
+    ({
+        rename:function rename(name)
+        {
+            let resl;
+
+            if (isKnob(this))
+            {
+                resl = struct(name);
+                this.peruse((val,key)=>{ resl[key] = val });
+                return resl;
+            };
+
+            if (isFunc(this))
+            {
+                resl = this.expose();  resl.nick = name;
+                resl = parsed(resl.toString());
+                return resl;
             };
         },
     });
@@ -692,18 +874,54 @@
 // ----------------------------------------------------------------------------------------------------------------------------
     Object.prototype.define
     ({
-        modify:function modify(fnc)
+        modify:function modify(conf)
         {
-            let tpe,rsl,tmp;
-            tpe = detect(this);
-            rsl = ((tpe == "list") ? [] : {});
-            this.peruse((val,key)=>
+            if (isText(conf)){ conf=parsed(conf) };
+            if ((length(this) < 1) || (length(conf) < 1)){ return this }; // validation
+
+            let thisType = detect(this);
+            let confType = detect(conf);
+            let swapKeys = FALS;
+
+            if (!("knob list func").hasAny(confType))
+            { moan("invalid configuration"); return };
+
+
+            if (confType == "func") // modify each item with a callback-function .. `this` in the callback refers to this haha
             {
-                tmp = fnc.apply(this,[val,key]);
-                if(detect(tmp)=="knob"){rsl.define(tmp)}
-                else{rsl[key] = tmp}
-            });
-            return rsl;
+                this.peruse((valu,indx)=>{ conf.apply(this,[valu,indx]) });
+                return this;
+            };
+
+
+            if (isData(this) && conf.assert((val,key)=>{return (isNaN(key*1))})) // modify the field-names in each data-row
+            {
+                this.peruse((row,idx)=>
+                {
+                    this[idx].peruse((valu,indx)=>
+                    {
+                        let swap = conf[indx];
+                        if (!swap || (swap===indx)){return}; // cataclysm avoided
+                        this[indx][swap]=valu; delete this[idx][indx];
+                    });
+                });
+                return this;
+            };
+
+
+            if ((thisType == "knob") && conf.assert((val,key)=>{return (!isNumr(key*1))})){ swapKeys=1 }
+            else if ((thisType == "list") && conf.assert((val,key)=>{return (isNumr(key*1))})){ swapKeys=1 }
+
+            if (swapKeys) // modify own keys directly
+            {
+                this.peruse((valu,indx)=>
+                {
+                    let swap = conf[indx];
+                    if (!swap || (swap===indx)){return}; // cataclysm avoided
+                    this[swap]=valu; delete this[indx];
+                });
+                return this;
+            };
         },
     });
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -724,19 +942,26 @@
 
 
     global(function isText(v,g,l){if((typeof v)!=="string"){return FALS}; return length.is(v,g,l)});
-    global(function isWord(v,g,l){return (test(trim(v,'_'),/^([a-zA-Z])([a-zA-Z0-9_]{1,35})+$/) && length.is(v,g,l))});
-    global(function isJson(v,g,l){return (isin(['[]','{}','""'],wrapOf(v))?TRUE:FALS)});
+
+    global(function isWord(v,g,l)
+    { return ((v+"").shaved("_").assert(/^([a-zA-Z])([a-zA-Z0-9_]{1,35})+$/) && length.is(v,g,l)) });
+
+    global(function isJson(v,g,l)
+    { return (((typeof v)==="string") && v.expose(BGN,END).hasAny('[]','{}','""') && length.is(v,g,l)) });
+
     global(function isPath(v,g,l)
     {
-        if(!test(v,/^([a-zA-Z0-9-\/\.\s_@~$]){1,432}$/)){return FALS}; if((v)!==(trim(v))){return FALS};
-        return (((v[0]=='/')||(v[0]=='.')||(v[0]=='~'))&&length.is(v,g,l))
+        let t,c;  t=(v+"");
+        if (!t.startsWith("/") && !t.startsWith("./") && !t.startsWith("../")){ return FALS }; // invalid path
+        if (["/", "~", ".", "~/", "..", "../"].hasAny(t)){return length.is(v,g,l)};  // shortest paths
+        return (t.assert(/^([a-zA-Z0-9-\/\.\s_@~$]){2,864}$/) && length.is(v,g,l));  // returns bool
     });
 
 
     global(function isBare(v,deep)
     {
         let w=detect(v); if(w=="func"){v=v.expose("body"); w="list"};
-        if(!deep){if(v===0){return TRUE}; return (isin("text,list,knob",w)?(length(v)<1):VOID)};
+        if(!deep){if(v===0){return TRUE}; return ("text,list,knob".hasAny(w) ? (length(v)<1) : VOID)};
         if(w=="void"){return TRUE}; if(w=="bool"){return FALS}; if(w=="numr"){return ((v===0)?TRUE:FALS)};
         if(w=="list"){v=v.join("")}else if(w=="knob"){v=(keys(v)).concat(vals(v)).join("")};
         if(isText(v)){v=trim(v)}; return (length(v)<1);
@@ -822,13 +1047,11 @@
 
     global(function isMeta(v,g,l)
     {
+        if (!(detect(v)==="knob") || !length.is(v,g,l)){return FALS}; // validation before it gets complicated
+
         let reserved = "apply construct defineProperty deleteProperty get getOwnPropertyDescriptor getPrototypeOf has "+
-                       "ownKeys preventExtensions set setPrototypeOf writable enumerable configurable value"
-                       .split(" "); // given `v` must be object and must have any key-name in this list above
-        let maxWords = reserved.length; // the supported number of words from the list above
-        if (!g){g=1};  if (!l || (l>maxWords)){l=maxWords}; // must not be more than supported words
-        if (!(detect(v)==="knob") || !length.is(v,g,l)){return FALS}; // validation for abovementioned
-        return v.expose(KEYS).hasAny(reserved); // returns first if found, else false
+                       "ownKeys preventExtensions set setPrototypeOf writable enumerable configurable value";
+        return reserved.hasAny(v.expose(KEYS)); // returns first if found, else false
     });
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -860,11 +1083,11 @@
             todo = length(this);
             done = 0;
 
-            this.peruse((val)=>
+            this.peruse((val,key,idx)=>
             {
-                if(isFunc(exp) && !!exp(val)){done++}
-                else if(isRegx(exp) && !!exp.test(texted(val))){done++}
-                else if(!!exp){done++};
+                if (isFunc(exp) && !!exp(val,key,idx)){done++}
+                else if (isRegx(exp) && !!exp.test(texted(val))){done++}
+                else if (!!exp){done++};
             });
 
             return (todo === done);
@@ -875,29 +1098,40 @@
 
 
 
-// shim :: Object.tunnel :
+// shim :: Object.tunnel : manage object/array-properties multidimensionally by tunneling via path .: `arm/hand/fingers/2/nail`
 // ----------------------------------------------------------------------------------------------------------------------------
     Object.prototype.define
     ({
-        tunnel: function tunnel(p,v,w)
+        tunnel: function tunnel(path,valu,flag)
         {
-            if(((typeof p)!="string")||(p.trim().length<1)||isin(p,"*")){return}; // invalid
-            let m,o,t,q,d,s,z="invalid bore option .. expecting any";  // validate
-            o=[GET,SET,RIP]; t=""; q=this; if(isText(w)&&!isWrap(w,":")){w=(":"+upperCase(w)+":")};// validate
-            w=(w||((v===VOID)?GET:((v===NULL)?RIP:SET)));
-            if(!isin(o,w)){fail(m+" of these: "+o.join(" ")); return}; // invalid
+            let prts,deep,opts,type,bufr;
 
-            s=this; z=span(p,"/"); p.split("/").forEach((i,x)=> // .. `foo.3.1` -> `foo[3][1]`
+            prts = path.split("/"); // list of parts
+            deep = prts.length; // levels-deep
+            opts = [GET,SET,RIP]; // available flag options
+            flag = ((flag+"").hasAny(opts) || (isVoid(valu)?GET:(isNull(valu)?RIP:SET))); // if flag was not set, now it is
+            type = detect(this); // do this once to conserve resources
+            bufr = this; // temporary holder for the current object property as we traverse below
+
+            prts.forEach((prop,levl)=>
             {
-                if(!isNaN(i)&&isList(q)){i=(i*1)}; t+=(isNumr(i)?("["+i+"]"):("."+i)); d=(isin(".[",t.slice(0,1))?"":".");
-                t=t.trim(); if((t==="")||(t===".")){dump("bore ignored: "+p); return};
-                if((w==SET)&&(x<z)&&(q[i]===VOID)){q[i]=(isKnob(q)?{}:[]); func(["a"],`this${d}${t}=a`,s)(q[i])};
-                q=(q||{})[i];
+                let pt = "text"; // property-type is text by default -doh -but it may change below
+                if (!isNaN(prop) && (type=="list")){ prop*=1; pt="numr" }; // this allows reference like: foo/3/bar
+
+                if (((levl+1) < deep) || (flag===GET))  // keep growing for now
+                {
+                    let vt = detect(bufr[prop]); // value-type
+                    if ((flag===GET) || vt.hasAny("knob","list","func")){ bufr=bufr[prop]; return }; // safe to proceed
+                    if (vt!=="void"){ moan("expecting tunnel-target type as any: void,knob,list,func"); return }; // yikes
+                    bufr[prop] = ((type=="list")?[]:{}); // make a tunnel .. bore
+                };
+
+                if (flag === SET){ temp[prop]=valu; return }; // assigned a value
+                if (flag === RIP){ delete temp[prop]; return }; // deleted a value
             });
 
-            if(w == GET){return q}; // select
-            if(w == RIP){func(`try{delete this${d}${t}}catch(e){}`); return TRUE}; // delete
-            func(["a"],`this${d}${t}=a`,s)(v); return TRUE;  // define/update
+            if (flag === GET){return bufr}; // end of the line... (get it?) :D
+            return this;
         },
     });
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -905,31 +1139,89 @@
 
 
 
-// shim :: Object.trap : fusion of Proxy & Object.defineProperty
+// tool :: Relay : extendable Proxy
+// ----------------------------------------------------------------------------------------------------------------------------
+    global(class Relay
+    {
+        constructor(trgt,conf)
+        {
+            if (isFunc(conf)){ conf=meta("trap") };
+            // let resl = new Proxy(trgt,conf);
+            // resl.define({target:trgt});
+            // return resl;
+        }
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// shim :: Object.hijack : Object.defineProperty
 // ----------------------------------------------------------------------------------------------------------------------------
     Object.prototype.define
     ({
-        trap:function trap(trgt,conf)
+        hijack:function hijack(conf)
         {
-            if (!isText(trgt) && !conf){ conf=trgt; trgt=VOID; }; // only conf-object was given
-            if (!conf){conf = function dummy(){}}; // if nothing was given we know a dummy-trap is implied
-            if (isFunc(conf)) // function given as handler for all
+            let trgt = (this || struct("decoy"));
+            if (isFunc(conf)){ conf=meta("trap",conf) };
+            if (isMeta(conf)){ return (new Relay(trgt,conf)) };
+        },
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// shim :: CustomEvent : for if missing
+// ----------------------------------------------------------------------------------------------------------------------------
+    if ((typeof CustomEvent) == "undefined")
+    {
+        global(class CustomEvent
+        {
+            constructor(name,data)
             {
-                if (!trgt && conf.name && (conf.name !== "anonymous")){ trgt=conf.name }; // property-name is function-name
-                conf = {get:conf, set:conf, apply:conf, construct:conf}
-            };
+                this.define
+                ({
+                    detail: data,
+                    timeStamp: performance.now(),
+                    type: name,
+                });
+            }
 
-            if (!!this && isText(trgt)) // implied - local property trap
+            preventDefault()
             {
-                Object.defineProperty(this,trgt,conf);
-                return this;
-            };
+                this.defaultPrevented = TRUE;
+            }
 
-            if (isText(trgt)){trgt = global(trgt)};
-            if (!trgt){trgt = new symbol("trap")};
+            stopPropagation()
+            {
+            }
 
-            let prox = new Proxy(trgt, conf);
-            return prox;
+            stopImmediatePropagation()
+            {
+            }
+
+            defaultPrevented = FALS
+            detail = VOID
+            timeStamp = 0
+            type = VOID
+        });
+    };
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// shim :: CustomEvent.cancel : nullify CustomEvent
+// ----------------------------------------------------------------------------------------------------------------------------
+    CustomEvent.prototype.define
+    ({
+        cancel: function cancel()
+        {
+            this.preventDefault();
+            this.stopPropagation();
+            this.stopImmediatePropagation();
+            this.define({halted:TRUE});
         },
     });
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -945,25 +1237,59 @@
         {
             if (!!this.events){return this}; // already vivified
 
-            let myself = (this || new symbol("entity")); // if called globally `this` is undefined, so you get an entity lol
-            let entity = (conf ? trap(myself,conf) : myself); // if a config object was given, then use it as a trap for myself
+            let myself = (this || new struct("entity")); // if called globally, `this` is undefined, so you get an entity lol
 
-            entity.define
+            myself.define
             ({
                 events: {}, // event names are stored in here as objects, each with keys as hashes and values as functions
+
 
                 listen: function listen(evnt,func)
                 {
                     if (!this.events[evnt]){this.events[evnt] = {}}; // if event-name does not exist, create it
-                    let hash = hashed(func);  this.events[evnt][hash] = func; // store each function at hashed key of event
-                    return this; // makes it chainable .. you're welcome :D
+                    let hash = hashed(func);  this.events[evnt][hash] = func; // store each function at hash-key of event
+                    return this; // makes methods chainable .. you're welcome :D
                 },
+
 
                 signal: function signal(evnt,data)
                 {
                     if (!this.events[evnt]){return this}; // no listeners
                     evnt = new CustomEvent(evnt,{detail:data}); // prepare payload as event
-                    this.events[evnt].forEach((func)=>{func.apply(this,[evnt])}); // call each function attached to this event
+                    evnt.define({cancel:function(){}});
+                    var todo=length(this.events[evnt]), done=0, temp, asnc=0; // for tracking progress
+
+                    this.events[evnt].peruse((func)=> // call each function in this event
+                    {
+                        if (evnt.haled){done=todo; return STOP} // cancelled
+                        else
+                        {
+                            temp = func.apply(this,[evnt]);
+                            if (!!temp && isFunc(temp.then)) // check for returned promise
+                            {
+                                asnc=1; temp.then(()=> // async
+                                {
+                                    done++;  if (todo==done)
+                                    {
+                                        if (evnt == "eventsIdle"){ delete this.events[evnt] }
+                                        else { this.signal("eventsIdle",evnt) }
+                                        evnt=VOID; data=VOID; todo=VOID; done=VOID; temp=VOID; asnc=VOID; // clean up!
+                                    };
+                                });
+                                return; // async
+                            }
+
+                            done++; // not async!
+                        };
+                    });
+
+                    if (!asnc && (todo==done))
+                    {
+                        if (evnt == "eventsIdle"){ delete this.events[evnt] }
+                        else { this.signal("eventsIdle",evnt) }
+                        evnt=VOID; data=VOID; todo=VOID; done=VOID; temp=VOID; asnc=VOID; // clean up!
+                    }
+
                     return this;
                 },
 
@@ -971,13 +1297,25 @@
                 {
                     let hash = hashed(func); // to be ignored -the function must be given in order to get its hash
                     if (!this.events[evnt] || !this.events[evnt][hash]){return this}; // nothing to ignore
-                    delete this.events[evnt][hash]; // done, gone, burnt and its ashes hurled into the sun in a sealed tube
+                    delete this.events[evnt][hash]; // done, gone, burnt to ashes, hurled into the sun in a sealed capsule
                     return this;
                 },
             });
 
-            return entity;
+            if (conf){ this.hijack(conf) };
+            return myself;
         }
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// func :: random : return a random string of specified length
+// ----------------------------------------------------------------------------------------------------------------------------
+    global(function random(span,type)
+    {
+
     });
 // ----------------------------------------------------------------------------------------------------------------------------
 
