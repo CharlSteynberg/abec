@@ -180,7 +180,7 @@
                 let o=parsed(l); // parsing of this line happens in the next code-block after this if/loop
                 let k=length(r); // we're using this for key-name in case the parsed result is not an object
                 if(!isKnob(o)){r[k]=o; return}; // an object was not returned, so we've added it as array item
-                Object.assign(r,o);
+                r.assign(o); // extend result with object
             });
 
             return r; // multi-statements done
@@ -198,7 +198,8 @@
 
         if ((d==":")||(d=="="))
         {
-            let k=p[0];  w=k.expose(FRST,LAST);  if(w.hasAny("''",'""',"``")){k=k.slice(1,-1)}; // clean up key
+            let k=p[0];  w=k.expose(FRST,LAST);
+            if(w.hasAny("''",'""',"``")){k=k.slice(1,-1)}; // clean up key
             r={[k]:parsed(p[2])}; return r;
         };
 
@@ -343,6 +344,20 @@
         defn=VOID; temp=VOID; name=VOID; rigd=VOID; data=VOID;  // clean up!
         return this; // for your chainable pleasure ;)
     }));
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// shim :: Object.assign : define properties .. shorhand for Object.assign
+// ----------------------------------------------------------------------------------------------------------------------------
+    Object.prototype.define
+    ({
+        assign: function(obj)
+        {
+            Object.assign(this,obj);
+        },
+    });
 // ----------------------------------------------------------------------------------------------------------------------------
 
 
