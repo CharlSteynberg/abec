@@ -173,7 +173,7 @@
     // ------------------------------------------------------------------------------------------------------------------------
 
 
-    // .. prep for further processing if possible, or return trimmed result if not
+    // .. prep for further processing if possible, or return trimmed input if not
     // ------------------------------------------------------------------------------------------------------------------------
         if (t.startsWith("?")){t=t.slice(1); if(!t){return "?"}}; // prep for URi-decoding .. or not
         t=t.split(";").join("\n").split("&").join("\n").trim(); // convert statements to newlines
