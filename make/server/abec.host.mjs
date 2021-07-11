@@ -8,7 +8,7 @@
     import * as Mule from "child_process";
     import { performance } from "perf_hooks";
 
-    import "../shared/abec.base.mjs";
+    import "../shared/abec.base.mjs"; // pure awesomeness
 
     global
     ({

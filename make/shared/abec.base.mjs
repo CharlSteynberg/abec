@@ -180,25 +180,26 @@
                 let o=parsed(l); // parsing of this line happens in the next code-block after this if/loop
                 let k=length(r); // we're using this for key-name in case the parsed result is not an object
                 if(!isKnob(o)){r[k]=o; return}; // an object was not returned, so we've added it as array item
-                r.define(o); // this `define` is very useful
+                Object.assign(r,o);
             });
+
             return r; // multi-statements done
         };
 
         p=t.expose(d); // split on first occurance -once
         p[0]=p[0].trim();  p[2]=p[2].trim(); // clean up both sides of delimiter
 
-        if ((d==":")||(d=="="))
-        {
-            let k=p[0];  w=k.expose(FRST,LAST);  if(w.hasAny("''",'""',"``")){k=k.slice(1,-1)}; // clean up key
-            r={[k]:parsed(p[2])}; return r;
-        };
-
         if (d==",")
         {
             r=[parsed(p[0])];  p=parsed(p[2]);
             if (detect(p)=="list"){r=r.concat(p)}else{r.push(p)};
             return r;
+        };
+
+        if ((d==":")||(d=="="))
+        {
+            let k=p[0];  w=k.expose(FRST,LAST);  if(w.hasAny("''",'""',"``")){k=k.slice(1,-1)}; // clean up key
+            r={[k]:parsed(p[2])}; return r;
         };
 
         return t; // return trimmed text
