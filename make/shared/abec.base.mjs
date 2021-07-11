@@ -147,6 +147,8 @@
 // ----------------------------------------------------------------------------------------------------------------------------
     const parsed = function parsed(v)
     {
+    // .. validation to prvent nasty debug issues .. prep for processing .. parse out most complex first
+    // ------------------------------------------------------------------------------------------------------------------------
         if((typeof v) !== "string"){return v}; // already parsed
         let t,r,d,w,p; t=v.trim();  if(!t){return t}; v=VOID; // set short vars .. trim text .. free up memory
 
@@ -155,7 +157,11 @@
             r=(new Function("let f="+t+"\nreturn f"))(); // `r` is now a function
             return r; // kept here for testing .. and for your eyes to tear less
         };
+    // ------------------------------------------------------------------------------------------------------------------------
 
+
+    // JSON-ish \\
+    // ------------------------------------------------------------------------------------------------------------------------
         try{r=JSON.parse(t); return r} // JSON does most of the heavy lifting .. though things may get weird with config...
         catch(e) // ...it just got wierd
         {
@@ -164,15 +170,22 @@
                 try{r=JSON.parse("["+t+"]"); return r}catch(err){} // ..squaries -same idea .. if fail we improvise below
             }
         };
+    // ------------------------------------------------------------------------------------------------------------------------
 
+
+    // .. prep for further processing if possible, or return trimmed result if not
+    // ------------------------------------------------------------------------------------------------------------------------
         if (t.startsWith("?")){t=t.slice(1); if(!t){return "?"}}; // prep for URi-decoding .. or not
         t=t.split(";").join("\n").split("&").join("\n").trim(); // convert statements to newlines
         w=t.expose(FRST,LAST);  if(t.hasAny("()","[]","{}","<>")){t=t.slice(1,-1).trim()}; // unwrap if text is context-wrapped
         d=t.hasAny("\n", ",", ":","="); // get delimiter
-
         if (!d){return t}; // no delimiter .. return plain trimmed text
+    // ------------------------------------------------------------------------------------------------------------------------
 
-        if(d=="\n") // we have newlines -or statements, so use self to parse each line
+
+    // multi-line statements \\
+    // ------------------------------------------------------------------------------------------------------------------------
+        if(d=="\n") // use self to parse each line
         {
             r={}; t.split("\n").forEach((l)=> // loop through each line .. keep
             {
@@ -183,9 +196,13 @@
                 r.assign(o); // extend result with object
             });
 
-            return r; // multi-statements done
+            return r; // end multi-line statements
         };
+    // ------------------------------------------------------------------------------------------------------------------------
 
+
+    // single-line statement \\
+    // ------------------------------------------------------------------------------------------------------------------------
         p=t.expose(d); // split on first occurance -once
         p[0]=p[0].trim();  p[2]=p[2].trim(); // clean up both sides of delimiter
 
@@ -204,6 +221,7 @@
         };
 
         return t; // return trimmed text
+    // ------------------------------------------------------------------------------------------------------------------------
     };
 // ----------------------------------------------------------------------------------------------------------------------------
 
