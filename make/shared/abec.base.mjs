@@ -495,8 +495,8 @@
 
                 set:function(dev,key,val)
                 {
-                    dump(val,key,dev);
-                    // this.memory[key] = val;
+                    this.memory[key] = val;
+                    return TRUE;
                 }
                 .bind(this),
             };
