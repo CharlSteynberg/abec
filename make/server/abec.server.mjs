@@ -2,14 +2,20 @@
 
 
 
-// load :: required : modules
+// load :: (required) : modules
 // ----------------------------------------------------------------------------------------------------------------------------
     import * as Disk from "fs";
     import * as Mule from "child_process";
     import { performance } from "perf_hooks";
 
     import "../shared/abec.base.mjs"; // pure awesomeness
+// ----------------------------------------------------------------------------------------------------------------------------
 
+
+
+
+// shim :: (functionality) : for cross-platform compaibility
+// ----------------------------------------------------------------------------------------------------------------------------
     global
     ({
         performance: performance,  // dependency for `performance.now()`
@@ -19,14 +25,11 @@
 
 
 
-// tool :: server : create server as global device
+// defn :: (server drivers) : the `driver` class works well here
 // ----------------------------------------------------------------------------------------------------------------------------
-    global
+    server.extend
     ({
-        server: new device("server").extend
-        ({
-            disk: new driver(Disk),
-            proc: new driver(Mule),
-        })
-    });
+        disk: new driver(Disk),
+        proc: new driver(Mule),
+    })
 // ----------------------------------------------------------------------------------------------------------------------------

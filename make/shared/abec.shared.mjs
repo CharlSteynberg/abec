@@ -150,8 +150,13 @@
     // .. validation to prvent nasty debug issues .. prep for processing .. parse out most complex first
     // ------------------------------------------------------------------------------------------------------------------------
         if((typeof v) !== "string"){return v}; // already parsed
-        let t,r,d,w,p; t=v.trim();  if(!t){return t}; v=VOID; // set short vars .. trim text .. free up memory
+        let t,r,d,w,p,q; t=v.trim();  if(!t){return t}; v=VOID; // set short vars .. trim text .. free up memory
+        w = t.expose(FRST,LAST);  if ((w==`<>`) && t.hasAny(`</`,`/>`)){ return txml.parse(t) }; // XML,SVG,HTML,etc
+    // ------------------------------------------------------------------------------------------------------------------------
 
+
+    // function \\
+    // ------------------------------------------------------------------------------------------------------------------------
         if ( (t.startsWith("function ")||t.startsWith("(")) && (t.hasAny("){",")=>",")\n")&&t.hasAny("}")) ) // for function
         {
             r=(new Function("let f="+t+"\nreturn f"))(); // `r` is now a function
@@ -160,15 +165,13 @@
     // ------------------------------------------------------------------------------------------------------------------------
 
 
-    // JSON-ish \\
+    // JSON -ish \\
     // ------------------------------------------------------------------------------------------------------------------------
         try{r=JSON.parse(t); return r} // JSON does most of the heavy lifting .. though things may get weird with config...
         catch(e) // ...it just got wierd
         {
-            try{r=JSON.parse("{"+t+"}"); return r}catch(er) // ..wrapped with curlies -hey if it works, why not
-            {
-                try{r=JSON.parse("["+t+"]"); return r}catch(err){} // ..squaries -same idea .. if fail we improvise below
-            }
+            q = t.shaved(",");  try{r=JSON.parse("{"+q+"}"); return r}catch(er) // ..try wrap with curlies
+            { try{r=JSON.parse("["+q+"]"); return r}catch(err){} } // ..try wrap with squaries
         };
     // ------------------------------------------------------------------------------------------------------------------------
 
@@ -177,8 +180,8 @@
     // ------------------------------------------------------------------------------------------------------------------------
         if (t.startsWith("?")){t=t.slice(1); if(!t){return "?"}}; // prep for URi-decoding .. or not
         t=t.split(";").join("\n").split("&").join("\n").trim(); // convert statements to newlines
-        w=t.expose(FRST,LAST);  if(t.hasAny("()","[]","{}","<>")){t=t.slice(1,-1).trim()}; // unwrap if text is context-wrapped
-        d=t.hasAny("\n", ",", ":","="); // get delimiter
+        if(t.hasAny("()","[]","{}","<>")){t=t.slice(1,-1).trim()}; // unwrap if in context
+        d=t.hasAny("\n", ",", ":", "="); // get delimiter
         if (!d){return t}; // no delimiter .. return plain trimmed text
     // ------------------------------------------------------------------------------------------------------------------------
 
@@ -588,6 +591,15 @@
 
 
 
+// tool :: txml : awesome XML parsing lib .. https://github.com/TobiasNickel/tXml.git
+// ----------------------------------------------------------------------------------------------------------------------------
+    !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t="undefined"!=typeof globalThis?globalThis:t||self).txml={})}(this,(function(t){"use strict";function e(t,e){var a=(e=e||{}).pos||0,i=!!e.keepComments,o=!!e.keepWhitespace,s="<".charCodeAt(0),f=">".charCodeAt(0),c="-".charCodeAt(0),u="/".charCodeAt(0),l="!".charCodeAt(0),h="'".charCodeAt(0),d='"'.charCodeAt(0),g="[".charCodeAt(0),p="]".charCodeAt(0);function m(e){for(var r=[];t[a];)if(t.charCodeAt(a)==s){if(t.charCodeAt(a+1)===u){var n=a+2;if(a=t.indexOf(">",a),-1==t.substring(n,a).indexOf(e)){var h=t.substring(0,a).split("\n");throw new Error("Unexpected close tag\nLine: "+(h.length-1)+"\nColumn: "+(h[h.length-1].length+1)+"\nChar: "+t[a])}return a+1&&(a+=1),r}if(t.charCodeAt(a+1)===l){if(t.charCodeAt(a+2)==c){const e=a;for(;-1!==a&&(t.charCodeAt(a)!==f||t.charCodeAt(a-1)!=c||t.charCodeAt(a-2)!=c||-1==a);)a=t.indexOf(">",a+1);-1===a&&(a=t.length),i&&r.push(t.substring(e,a+1))}else{if(t.charCodeAt(a+2)===g&&t.charCodeAt(a+8)===g&&"cdata"===t.substr(a+3,5).toLowerCase()){var d=t.indexOf("]]>",a);-1==d?(r.push(t.substr(a+9)),a=t.length):(r.push(t.substring(a+9,d)),a=d+3);continue}{const e=a+1;a+=2;for(var m=!1;(t.charCodeAt(a)!==f||!0===m)&&t[a];)t.charCodeAt(a)===g?m=!0:!0===m&&t.charCodeAt(a)===p&&(m=!1),a++;r.push(t.substring(e,a))}}a++;continue}var v=A();r.push(v),"?"===v.tagName[0]&&(r.push(...v.children),v.children=[])}else{var C=b();if(o)C.length>0&&r.push(C);else{var y=C.trim();y.length>0&&r.push(y)}a++}return r}function b(){var e=a;return-2===(a=t.indexOf("<",a)-1)&&(a=t.length),t.slice(e,a+1)}function v(){for(var e=a;-1==="\r\n\t>/= ".indexOf(t[a])&&t[a];)a++;return t.slice(e,a)}var C=e.noChildNodes||["img","br","input","meta","link","hr"];function A(){a++;const e=v(),r={};let n=[];for(;t.charCodeAt(a)!==f&&t[a];){var i=t.charCodeAt(a);if(i>64&&i<91||i>96&&i<123){for(var o=v(),s=t.charCodeAt(a);s&&s!==h&&s!==d&&!(s>64&&s<91||s>96&&s<123)&&s!==f;)a++,s=t.charCodeAt(a);if(s===h||s===d){var c=y();if(-1===a)return{tagName:e,attributes:r,children:n}}else c=null,a--;r[o]=c}a++}if(t.charCodeAt(a-1)!==u)if("script"==e){var l=a+1;a=t.indexOf("<\/script>",a),n=[t.slice(l,a)],a+=9}else if("style"==e){l=a+1;a=t.indexOf("</style>",a),n=[t.slice(l,a)],a+=8}else-1===C.indexOf(e)?(a++,n=m(e)):a++;else a++;return{tagName:e,attributes:r,children:n}}function y(){var e=t[a],r=a+1;return a=t.indexOf(e,r),t.slice(r,a)}var x,N=null;if(void 0!==e.attrValue){e.attrName=e.attrName||"id";for(N=[];-1!==(x=void 0,x=new RegExp("\\s"+e.attrName+"\\s*=['\"]"+e.attrValue+"['\"]").exec(t),a=x?x.index:-1);)-1!==(a=t.lastIndexOf("<",a))&&N.push(A()),t=t.substr(a),a=0}else N=e.parseNode?A():m("");return e.filter&&(N=n(N,e.filter)),e.simplify?r(Array.isArray(N)?N:[N]):(e.setPos&&(N.pos=a),N)}function r(t){var e={};if(!t.length)return"";if(1===t.length&&"string"==typeof t[0])return t[0];for(var n in t.forEach((function(t){if("object"==typeof t){e[t.tagName]||(e[t.tagName]=[]);var n=r(t.children);e[t.tagName].push(n),Object.keys(t.attributes).length&&(n._attributes=t.attributes)}})),e)1==e[n].length&&(e[n]=e[n][0]);return e}function n(t,e,r=0,a=""){var i=[];return t.forEach((function(t,o){if("object"==typeof t&&e(t,o,r,a)&&i.push(t),t.children){var s=n(t.children,e,r+1,(a?a+".":"")+o+"."+t.tagName);i=i.concat(s)}})),i}t.filter=n,t.getElementById=function(t,r,n){var a=e(t,{attrValue:r});return n?tXml.simplify(a):a[0]},t.getElementsByClassName=function(t,r,n){const a=e(t,{attrName:"class",attrValue:"[a-zA-Z0-9- ]*"+r+"[a-zA-Z0-9- ]*"});return n?tXml.simplify(a):a},t.parse=e,t.simplify=r,t.simplifyLostLess=function t(e,r={}){var n={};return e.length?1===e.length&&"string"==typeof e[0]?Object.keys(r).length?{_attributes:r,value:e[0]}:e[0]:(e.forEach((function(e){if("object"==typeof e){n[e.tagName]||(n[e.tagName]=[]);var r=t(e.children||[],e.attributes);n[e.tagName].push(r),Object.keys(e.attributes).length&&(r._attributes=e.attributes)}})),n):n},t.stringify=function(t){var e="";function r(t){if(t)for(var r=0;r<t.length;r++)"string"==typeof t[r]?e+=t[r].trim():n(t[r])}function n(t){for(var n in e+="<"+t.tagName,t.attributes)null===t.attributes[n]?e+=" "+n:-1===t.attributes[n].indexOf('"')?e+=" "+n+'="'+t.attributes[n].trim()+'"':e+=" "+n+"='"+t.attributes[n].trim()+"'";"?"!==t.tagName[0]?(e+=">",r(t.children),e+="</"+t.tagName+">"):e+="?>"}return r(t),e},t.toContentString=function t(e){if(Array.isArray(e)){var r="";return e.forEach((function(e){r=(r+=" "+t(e)).trim()})),r}return"object"==typeof e?t(e.children):" "+e},Object.defineProperty(t,"__esModule",{value:!0})}));
+    global({txml:txml}); // bonafied!
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
 // func :: length : length of anything .. `length.is()` -to verify/assert length
 // ----------------------------------------------------------------------------------------------------------------------------
     global(function length(d,x)
@@ -904,65 +916,6 @@
 
 
 
-// shim :: Object.modify() : this also affects arrays
-// ----------------------------------------------------------------------------------------------------------------------------
-    Object.prototype.define
-    ({
-        modify:function modify(conf)
-        {
-            if (isText(conf)){ conf=parsed(conf) };
-            if ((length(this) < 1) || (length(conf) < 1)){ return this }; // validation
-
-            let thisType = detect(this);
-            let confType = detect(conf);
-            let swapKeys = FALS;
-
-            if (!("knob list func").hasAny(confType))
-            { moan("invalid configuration"); return };
-
-
-            if (confType == "func") // modify each item with a callback-function .. `this` in the callback refers to this haha
-            {
-                this.peruse((valu,indx)=>{ conf.apply(this,[valu,indx]) });
-                return this;
-            };
-
-
-            if (isData(this) && conf.assert((val,key)=>{return (isNaN(key*1))})) // modify the field-names in each data-row
-            {
-                this.peruse((row,idx)=>
-                {
-                    this[idx].peruse((valu,indx)=>
-                    {
-                        let swap = conf[indx];
-                        if (!swap || (swap===indx)){return}; // cataclysm avoided
-                        this[indx][swap]=valu; delete this[idx][indx];
-                    });
-                });
-                return this;
-            };
-
-
-            if ((thisType == "knob") && conf.assert((val,key)=>{return (!isNumr(key*1))})){ swapKeys=1 }
-            else if ((thisType == "list") && conf.assert((val,key)=>{return (isNumr(key*1))})){ swapKeys=1 }
-
-            if (swapKeys) // modify own keys directly
-            {
-                this.peruse((valu,indx)=>
-                {
-                    let swap = conf[indx];
-                    if (!swap || (swap===indx)){return}; // cataclysm avoided
-                    this[swap]=valu; delete this[indx];
-                });
-                return this;
-            };
-        },
-    });
-// ----------------------------------------------------------------------------------------------------------------------------
-
-
-
-
 // shiv :: (types) : shorthands to identify variables .. g & l is "greater-than" & "less-than" -which counts items inside v
 // ----------------------------------------------------------------------------------------------------------------------------
     global(function isVoid(v){return (v===VOID)});
@@ -1173,39 +1126,6 @@
 
 
 
-// tool :: Relay : extendable Proxy
-// ----------------------------------------------------------------------------------------------------------------------------
-    global(class Relay
-    {
-        constructor(trgt,conf)
-        {
-            if (isFunc(conf)){ conf=meta("trap") };
-            // let resl = new Proxy(trgt,conf);
-            // resl.define({target:trgt});
-            // return resl;
-        }
-    });
-// ----------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-// shim :: Object.hijack : Object.defineProperty
-// ----------------------------------------------------------------------------------------------------------------------------
-    Object.prototype.define
-    ({
-        hijack:function hijack(conf)
-        {
-            let trgt = (this || struct("decoy"));
-            if (isFunc(conf)){ conf=meta("trap",conf) };
-            if (isMeta(conf)){ return (new Relay(trgt,conf)) };
-        },
-    });
-// ----------------------------------------------------------------------------------------------------------------------------
-
-
-
-
 // shim :: CustomEvent : for if missing
 // ----------------------------------------------------------------------------------------------------------------------------
     if ((typeof CustomEvent) == "undefined")
@@ -1345,11 +1265,71 @@
 
 
 
-// func :: random : return a random string of specified length
+// shim :: Object.modify() : this also affects arrays
 // ----------------------------------------------------------------------------------------------------------------------------
-    global(function random(span,type)
-    {
+    Object.prototype.define
+    ({
+        modify:function modify(conf)
+        {
+            if (isText(conf)){ conf=parsed(conf) };
+            if ((length(this) < 1) || (length(conf) < 1)){ return this }; // validation
 
+            let thisType = detect(this);
+            let confType = detect(conf);
+            let swapKeys = FALS;
+
+            if (!("knob list func").hasAny(confType))
+            { moan("invalid configuration"); return };
+
+
+            if (confType == "func") // modify each item with a callback-function .. `this` in the callback refers to this haha
+            {
+                this.peruse((valu,indx)=>{ conf.apply(this,[valu,indx]) });
+                return this;
+            };
+
+
+            if (isData(this) && conf.assert((val,key)=>{return (isNaN(key*1))})) // modify the field-names in each data-row
+            {
+                this.peruse((row,idx)=>
+                {
+                    this[idx].peruse((valu,indx)=>
+                    {
+                        let swap = conf[indx];
+                        if (!swap || (swap===indx)){return}; // cataclysm avoided
+                        this[indx][swap]=valu; delete this[idx][indx];
+                    });
+                });
+                return this;
+            };
+
+
+            if ((thisType == "knob") && conf.assert((val,key)=>{return (!isNumr(key*1))})){ swapKeys=1 }
+            else if ((thisType == "list") && conf.assert((val,key)=>{return (isNumr(key*1))})){ swapKeys=1 }
+
+            if (swapKeys) // modify own keys directly
+            {
+                this.peruse((valu,indx)=>
+                {
+                    let swap = conf[indx];
+                    if (!swap || (swap===indx)){return}; // cataclysm avoided
+                    this[swap]=valu; delete this[indx];
+                });
+                return this;
+            };
+        },
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// tool :: server/client : create server & client as global devices .. to be extended by abec.host.js & abec.view.js .. or any
+// ----------------------------------------------------------------------------------------------------------------------------
+    global
+    ({
+        server: new device("server"),
+        client: new device("client"),
     });
 // ----------------------------------------------------------------------------------------------------------------------------
 
