@@ -27,7 +27,6 @@
   },
   "homepage": "https://github.com/CharlSteynberg/abec#readme",
   "dependencies": {
-    "uglify-js": "^3.13.2"
   },
   "directories": {
     "dist": "./dist",
