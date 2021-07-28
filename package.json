@@ -5,7 +5,7 @@
     "!win32"
   ],
   "description": "Abstract Bios Evolution Core",
-  "main": "index.js",
+  "main": "index.mjs",
   "scripts": {
     "build": "node ./make",
     "test": "node ./test"
@@ -18,6 +18,7 @@
   "keywords": [
     "front-end",
     "back-end",
+    "full-stack",
     "tool-library"
   ],
   "author": "Charl Steynberg <charl.xacra@gmail.com>",
@@ -27,10 +28,13 @@
   },
   "homepage": "https://github.com/CharlSteynberg/abec#readme",
   "dependencies": {
+    "html2canvas": "^1.1.4",
+    "three": "^0.130.1",
+    "uglify-js": "^3.14.0"
   },
   "directories": {
+    "core": "./core",
     "dist": "./dist",
-    "make": "./make",
     "test": "./test"
   }
 }

@@ -2,12 +2,21 @@
 Abstract Bios Evolution Core
 
 
+## Introduction
+If you just want to install **ABEC**, see the [installation section](#installation) for quick, clear ans simple instructions; else if you seek knowledge, [elaboration](#elaboration) follows.
+
+![relax](relax.jpg)
+
+### Elaboration
+**ABEC** is a mighty yet tiny tool-library that runs on any platform capable of running JavaScript.
+
+***
 
 ## Installation
 The **abec** library is a set of tools to use in JavaScript and runs both back-end and front-end, running inside the NodeJS -and web-browser platforms -respectively.
 
-- it can be installed locally on a Linux host via `npm install abec`
-- in can be referenced in the browser like this `<script src="./somePathTo/abec.min.js"></scripr>`
+- server side: `npm install abec`
+- client side: `<script type="module" src="./abec/core/client/abec.core.client.mjs"></scripr>`
 
 
 

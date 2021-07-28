@@ -7,8 +7,6 @@
     import * as Disk from "fs";
     import * as Mule from "child_process";
     import { performance } from "perf_hooks";
-
-    import "../shared/abec.base.mjs"; // pure awesomeness
 // ----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -25,11 +23,14 @@
 
 
 
-// defn :: (server drivers) : the `driver` class works well here
+// tool :: Server : create Server as global Device
 // ----------------------------------------------------------------------------------------------------------------------------
-    server.extend
+    global
     ({
-        disk: new driver(Disk),
-        proc: new driver(Mule),
-    })
+        Server: new Device("Server").extend
+        ({
+            disk: new Driver(Disk),
+            proc: new Driver(Mule),
+        }),
+    });
 // ----------------------------------------------------------------------------------------------------------------------------
