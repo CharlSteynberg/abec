@@ -5,7 +5,7 @@ Abstract Bios Evolution Core
 ## Introduction
 If you just want to install **ABEC**, see the [installation section](#installation) for quick, clear ans simple instructions; else if you seek knowledge, [elaboration](#elaboration) follows.
 
-![relax](relax.jpg)
+![relax](dist/demo/relax.jpg)
 
 ### Elaboration
 **ABEC** is a mighty yet tiny tool-library that runs on any platform capable of running JavaScript.

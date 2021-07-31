@@ -35,6 +35,7 @@
   "directories": {
     "core": "./core",
     "dist": "./dist",
+    "make": "./make",
     "test": "./test"
   }
 }
