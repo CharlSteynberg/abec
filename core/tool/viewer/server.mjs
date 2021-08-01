@@ -12,7 +12,6 @@
             {
                 evnt = evnt.detail;
                 evnt.parent.driver = evnt.value;
-
                 System.listen("viewerChange",()=>
                 {
                     after(1)(()=>
@@ -110,7 +109,8 @@
 
             vivify: function(conf)
             {
-                dump(params());
+                let args = params();
+                dump(args);
             },
         })
     });

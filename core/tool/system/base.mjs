@@ -316,7 +316,7 @@
         if (!text && !!resl){ return resl }; // we have results!
         return text; // well at lest we trimmed it for you :D
     }
-    .define
+    .bind
     ({
         null: function(text)
         {
@@ -356,7 +356,8 @@
 
         qstr: function(text)
         {
-            let resl;  if ((text.indexOf(" ") > -1) || (text.indexOf("\n") > -1)){ return }; // not QRY
+            let resl;  if (!(/^(\?|\&)([\w-]+(=[\w-]*)?(&[\w-]+(=[\w-]*)?)*)?$/).test(text)){ return }; // not QRY
+            // if (!text.slice(0,1).hasAny("?","&") || text.hasAny(" ","\n") || (text.indexOf("=") < 1)){ return }; // not QRY
             try{ resl = new URLSearchParams(text) }catch(er){ return };
             resl = Object.fromEntries(resl);
             return resl;
@@ -393,18 +394,15 @@
 
         mlti: function(text,dlim)
         {
-            text = text.split(";").join("\n"); // each statement on new line
-            if (!dlim || !dlim.hasAny("\n",";") || !text.hasAny("\n")){ return }; // not multi-line
-
-            let resl = [];  text.split("\n").forEach((line)=>
+            if (!dlim || !dlim.hasAny("\n",";") || !text.hasAny(dlim)){ return }; // not multi-line
+            let resl = [];  text.split(dlim).forEach((line)=>
             {
                 let temp = parsed(line);  if (temp === VOID){ return }; // next
                 if ((detect(temp) != "knob") && !!resl.push){ resl.push(temp) }
-                else{ resl.assign(temp) };  temp = VOID; // clean up!
-                return STOP; // parsed it, no need to test more parsers
+                else{ temp.peruse((val,key)=>{resl[key]=val}) };  temp = VOID; // clean up!
             });
 
-            text=VOID;  keys=VOID; // clean up!
+            text=VOID; // clean up!
             return resl;
         },
 
@@ -443,7 +441,8 @@
             {
                 r = this.argv;  if (r){return r};
                 r = process.argv;  r.shift();  r.shift();
-                r = parsed(r.join("\n"));  this.argv = r;
+                r = parsed(r.join("\n"));  if (isText(r)){ r = [r] };
+                this.argv = r;
 
             }
             return r;
@@ -453,7 +452,7 @@
         r = ((detect(a)!="list") ? [a] : ((detect(a[0])=="list") ? a[0] : a)) // cast to array .. exhume 1st if it is array
         return ([].slice.call(r)); // normalize `arguments`
     }
-    .bind({});
+    .bind({}); // keep this!
 // ----------------------------------------------------------------------------------------------------------------------------
 
 
