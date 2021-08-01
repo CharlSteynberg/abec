@@ -341,7 +341,7 @@
         {
             if (!(text.startsWith("function ")||text.startsWith("("))){ return }; // does not look like a function
             if (!(text.hasAny("){",")=>",")\n")&&text.hasAny("}"))){ return }; // .. malformed, or broken
-            return (new Function("let f="+t+"\nreturn f"))(); // happy hacking :D
+            return (new Function("let f="+text+"\nreturn f"))(); // happy hacking :D
         },
 
 

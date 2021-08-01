@@ -109,8 +109,9 @@
 
             vivify: function(conf)
             {
-                let args = params();
-                dump(args);
+                let exec = params()[0];
+                let resl = parsed("function exec(){ "+exec+" }")();
+                dump(resl);
             },
         })
     });

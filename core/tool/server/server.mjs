@@ -34,11 +34,12 @@
 
             proc: new Driver(Mule),
 
-            http: new Driver(Http).define
+            http: new Driver(Http).extend
             ({
                 create: function(path, port, addr)
                 {
-                    dump(this.device);
+                    dump("olo from Server.create()");
+                    dump(this.memory.device);
                 },
             }),
         }),
