@@ -2,40 +2,37 @@
 
 
 
-// tool :: txml : awesome XML parsing lib .. https://github.com/TobiasNickel/tXml.git
-// ----------------------------------------------------------------------------------------------------------------------------
-    import * as tXml from "./txml.mjs";
-    global({txml: tXml}); // make it known
-// ----------------------------------------------------------------------------------------------------------------------------
-
-
-
-
 // tool :: Choice : ... ?
 // ----------------------------------------------------------------------------------------------------------------------------
     global(class Choice
     {
-        chosen = {}
-        option = {}
+        constructor(defn)
+        {
+            if (isKnob(defn)){ this.assign(defn) };
+            return this.liaise();
+        }
 
 
         choose(indx)
         {
-            let choice = {index:indx, value:this.option};
+            if (isVoid(this[indx]) || (!isText(indx) && !isNumr(indx)))
+            { moan("invalid choice"); return }; // must validate
 
-            if (this.chosen !== choice)
+            let choice = {index:indx, value:this[indx]};
+
+            if (this.index !== indx)
             {
-                this.signal("change",{parent:this.parent, chosen:choice});
+                this.signal("change", choice.append({parent:this.parent}));
             };
 
-            this.chosen = choice;
-            return this.chosen.value;
+            this.define(choice);
+            return this.value;
         }
 
 
         extend(defn)
         {
-            this.option.assign(defn);
+            this.assign(defn);
             return this;
         }
 
@@ -43,13 +40,6 @@
         toString()
         {
             return texted(this.value);
-        }
-
-
-        constructor(defn)
-        {
-            if (isKnob(defn)){ this.option.assign(defn) };
-            return this.vivify();
         }
     });
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -63,7 +53,7 @@
     {
         constructor(name)
         {
-            this.source = struct(name+"Device").vivify();
+            this.source = struct(name+"Device").liaise();
             this.source.define
             ({
                 parent: this,
@@ -73,7 +63,7 @@
                     defn.peruse((val,key)=>
                     {
                         this.driver[key] = val;  // put the driver in a safe place .. below is for: `device.driver.method()`
-                        this[key] = ((val instanceof Driver) ? this.driver[key].vivify(this) : this.driver[key]);
+                        this[key] = ((val instanceof Driver) ? this.driver[key].liaise(this) : this.driver[key]);
                         if (!!this[key] && !this[key].parent){ this[key].define({parent:this.parent}) };
                     });
 

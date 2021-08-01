@@ -4,9 +4,36 @@
 
 // shim :: Object.assign : shorhand for `Object.assign(target, attrib)` .. now just use: `target.assign(attrib)`
 // ----------------------------------------------------------------------------------------------------------------------------
-    Object.prototype.define(function assign(obj)
+    Object.prototype.define(function assign(defn)
     {
-        Object.assign(this,obj);
+        let type = detect(resl);
+
+        defn.peruse((key,val)=>
+        {
+            this[key] = val;
+        });
+
+        return this;
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// shim :: Object.append : like assign, but does not affect the origin .. returns new merged object
+// ----------------------------------------------------------------------------------------------------------------------------
+    Object.prototype.define(function append(defn)
+    {
+        let resl = copied(this);
+        let type = detect(resl);
+
+        defn.peruse((key,val)=>
+        {
+            if (type == "list"){ resl.push(val) }
+            else { resl[key] = val };
+        });
+
+        return resl;
     });
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -424,9 +451,9 @@
 
 
 
-// shim :: Object.vivify : turn object into event emitter, if not already
+// shim :: Object.liaise : turn object into event emitter, if not already
 // ----------------------------------------------------------------------------------------------------------------------------
-    Object.prototype.define(function vivify(conf)
+    Object.prototype.define(function liaise(conf)
     {
         if (!!this.events){return this}; // already vivified
 
@@ -555,7 +582,7 @@
 
 
 
-// shim :: Function.absorb : absorbs `func` until done .. `rest` defines how long to wait until returned promise resolves
+// shim :: Function.absorb : TODO absorbs `func` until done .. `rest` defines how long to wait until returned promise resolves
 // ----------------------------------------------------------------------------------------------------------------------------
     Function.prototype.define(function absorb()
     {

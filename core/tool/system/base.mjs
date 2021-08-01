@@ -2,6 +2,15 @@
 
 
 
+// tool :: txml : awesome XML parsing lib .. https://github.com/TobiasNickel/tXml.git
+// ----------------------------------------------------------------------------------------------------------------------------
+    import * as tXml from "./txml.mjs";
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
 // defn :: (constants) : useful for if another script overwrites something we need
 // ----------------------------------------------------------------------------------------------------------------------------
     Object.defineProperty(globalThis, "MAIN", {configurable:false, enumerable:false, writable:false, value:globalThis});
@@ -236,6 +245,28 @@
 
 
 
+// func :: copied : duplicate .. if numr or text then n repeats n-times
+// ----------------------------------------------------------------------------------------------------------------------------
+    const copied = function copied(v,n, r,t)
+    {
+        t = detect(v); if((t=="void")||(t==="null")||(t=="bool")||(v==="")){return v}; // cannot copy
+        if ((t==="numr")||(t==="text")){if(!n){return v}; v=(v+""); n=parseInt(n); r=""; for(let i=0;i<n;i++){r+=v}; return r};
+        if (((typeof Element)!=="undefined")&&(v instanceof Element)){return (v.cloneNode(true))};
+        if (t==="list"){r=[]; v=([].slice.call(v)); v.forEach((i)=>{r.push(copied(i))}); return r};
+        if (t==="knob"){r={}; for(let k in v){if(!v.hasOwnProperty(k)){continue}; r[k]=copied(v[k])}; return r};
+        if (t==="func")
+        {
+            r=new Function("try{return "+v.toString()+"}catch(e){return}")(); if(isVoid(r))
+            {fail("copy :: something went wrong; check the console"); moan("tried to copy:\n"+v.toString()); return};
+            Object.keys(v).forEach((fk)=>{r[fk]=copied(v[fk])});
+            return r;
+        };
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
 // func :: texted : returns text-version of anything given in `what`
 // ----------------------------------------------------------------------------------------------------------------------------
     const texted = function texted(what)
@@ -264,111 +295,162 @@
 
 
 
-// func :: parsed : returns implied data-version of text given in v .. covers a load of practical use cases
+// func :: parsed : returns implied data-version of text given in `defn` .. very useful
 // ----------------------------------------------------------------------------------------------------------------------------
-    const parsed = function parsed(v)
+    const parsed = function parsed(defn)
     {
-    // .. validation to prvent nasty debug issues .. prep for processing .. parse out most complex first
-    // ------------------------------------------------------------------------------------------------------------------------
-        if((typeof v) !== "string"){return v}; // already parsed
-        let t,r,d,w,p,q; t=v.trim();  if(!t){return t}; v=VOID; // set short vars .. trim text .. free up memory
-        // w = t.expose(FRST,LAST);  if ((w==`<>`) && t.hasAny(`</`,`/>`)){ return txml.parse(t) }; // XML,SVG,HTML,etc
-        w = t.expose(FRST,LAST);  if ((w==`<>`) && t.hasAny(`</`,`/>`)){ return `undefined XML` }; // XML,SVG,HTML,etc
-    // ------------------------------------------------------------------------------------------------------------------------
+        if ((typeof defn) !== "string"){ return defn }; // already parsed
+        let text,resl;  text = defn.trim();
+        let dlim = text.hasAny("\n", ";", ",", ":","=");  defn=VOID; // clean up so we can start
 
-
-    // function \\
-    // ------------------------------------------------------------------------------------------------------------------------
-        if ( (t.startsWith("function ")||t.startsWith("(")) && (t.hasAny("){",")=>",")\n")&&t.hasAny("}")) ) // for function
+        for (let type in this)
         {
-            r=(new Function("let f="+t+"\nreturn f"))(); // `r` is now a function
-            return r; // kept here for testing .. and for your eyes to tear less
+            if (!this.hasOwnProperty(type)){ continue }; // not interesting
+            resl = this[type](text,dlim);  if (resl === VOID){ continue }; // try next parser
+            text=VOID;  break; // parser worked! .. clean up memory
         };
-    // ------------------------------------------------------------------------------------------------------------------------
 
-
-    // JSON -ish \\
-    // ------------------------------------------------------------------------------------------------------------------------
-        try{r=JSON.parse(t); return r} // JSON does most of the heavy lifting .. though things may get weird with config...
-        catch(e) // ...it just got wierd
+        if (!text && !!resl){ return resl }; // we have results!
+        return text; // well at lest we trimmed it for you :D
+    }
+    .define
+    ({
+        null: function(text)
         {
-            q = t.shaved(",");  try{r=JSON.parse("{"+q+"}"); return r}catch(er) // ..try wrap with curlies
-            { try{r=JSON.parse("["+q+"]"); return r}catch(err){} } // ..try wrap with squaries
-        };
-    // ------------------------------------------------------------------------------------------------------------------------
+            text = text.toLowerCase().slice(0,9);
+            return ((["?","null","undefined"].indexOf(text) > -1) ? null : VOID);
+        },
 
 
-    // .. prep for further processing if possible, or return trimmed input if not
-    // ------------------------------------------------------------------------------------------------------------------------
-        if (t.startsWith("?")){t=t.slice(1); if(!t){return "?"}}; // prep for URi-decoding .. or not
-        t=t.split(";").join("\n").split("&").join("\n").trim(); // convert statements to newlines
-        if(t.hasAny("()","[]","{}","<>")){t=t.slice(1,-1).trim()}; // unwrap if in context
-        d=t.hasAny("\n", ",", ":", "="); // get delimiter
-        if (!d){return t}; // no delimiter .. return plain trimmed text
-    // ------------------------------------------------------------------------------------------------------------------------
-
-
-    // multi-line statements \\
-    // ------------------------------------------------------------------------------------------------------------------------
-        if(d=="\n") // use self to parse each line
+        bool: function(text)
         {
-            r={}; t.split("\n").forEach((l)=> // loop through each line .. keep
+            text = text.toLowerCase().slice(0,9);
+            return ((this.TRUE.indexOf(text) > -1) ? true : ((this.FALS.indexOf(text) > -1) ? false : VOID));
+        }
+        .bind
+        ({
+            TRUE: ["true", "yes", "on", "good", "yebo", "y", "+"],
+            FALS: ["false", "no", "off", "bad", "fals", "n", "-"],
+        }),
+
+
+        func: function(text)
+        {
+            if (!(text.startsWith("function ")||text.startsWith("("))){ return }; // does not look like a function
+            if (!(text.hasAny("){",")=>",")\n")&&text.hasAny("}"))){ return }; // .. malformed, or broken
+            return (new Function("let f="+t+"\nreturn f"))(); // happy hacking :D
+        },
+
+
+        href: function(text)
+        {
+            let resl;  if ((text.indexOf(" ") > -1) || (text.indexOf("\n") > -1)){ return }; // not URL
+            try{ resl = new URL(text) }catch(er){ return };
+            resl.searchParams = Object.fromEntries(resl.searchParams);
+            return resl;
+        },
+
+
+        qstr: function(text)
+        {
+            let resl;  if ((text.indexOf(" ") > -1) || (text.indexOf("\n") > -1)){ return }; // not QRY
+            try{ resl = new URLSearchParams(text) }catch(er){ return };
+            resl = Object.fromEntries(resl);
+            return resl;
+        },
+
+
+        txml: function(text)
+        {
+            let resl,wrap;  wrap = text.expose(FRST,LAST);
+            if ((wrap!=`<>`) || !text.hasAny(`</`,`/>`)){ return }; // not XML
+            try{ resl = tXml.parse(text) }catch(er){ return };
+            return resl;
+        },
+
+
+        xatr: function(text)
+        {
+            if (text.hasAny("\n") || !text.hasAll(`=`,`"`,` `)){ return }; // not ATR .. or simple enough to split
+            let resl = this.xml("<obj "+text+" ></obj>");  if (!resl){ return }; // not ATR
+            return resl[0].attributes;
+        },
+
+
+        json: function(text)
+        {
+            let resl;  text = text.shaved(",");
+            try{ resl = JSON.parse(text);  return resl }catch(er)
             {
-                l=l.trim(); if(!l){return}; // not interesting
-                let o=parsed(l); // parsing of this line happens in the next code-block after this if/loop
-                let k=length(r); // we're using this for key-name in case the parsed result is not an object
-                if(!isKnob(o)){r[k]=o; return}; // an object was not returned, so we've added it as array item
-                r.assign(o); // extend result with object
+                try { resl = JSON.parse("{"+text+"}");  return resl }catch(er) // ..try wrap with curlies
+                { try{ resl = JSON.parse("["+text+"]"); return resl }catch(err){} } // ..try wrap with squaries
+            };
+        },
+
+
+        mlti: function(text,dlim)
+        {
+            text = text.split(";").join("\n"); // each statement on new line
+            if (!dlim || !dlim.hasAny("\n",";") || !text.hasAny("\n")){ return }; // not multi-line
+
+            let resl = [];  text.split("\n").forEach((line)=>
+            {
+                let temp = parsed(line);  if (temp === VOID){ return }; // next
+                if ((detect(temp) != "knob") && !!resl.push){ resl.push(temp) }
+                else{ resl.assign(temp) };  temp = VOID; // clean up!
+                return STOP; // parsed it, no need to test more parsers
             });
 
-            return r; // end multi-line statements
-        };
-    // ------------------------------------------------------------------------------------------------------------------------
+            text=VOID;  keys=VOID; // clean up!
+            return resl;
+        },
 
 
-    // single-line statement \\
-    // ------------------------------------------------------------------------------------------------------------------------
-        p=t.expose(d); // split on first occurance -once
-        p[0]=p[0].trim();  p[2]=p[2].trim(); // clean up both sides of delimiter
-
-        if (d==",")
+        list: function(text,dlim)
         {
-            r=[parsed(p[0])];  p=parsed(p[2]);
-            if (detect(p)=="list"){r=r.concat(p)}else{r.push(p)};
+            if (dlim !== ","){ return }; // not array
+            let resl = [];  text.split(",").forEach((item)=>{ resl.push(parsed(item)) });
+            return resl;
+        },
+
+
+        knob: function(text,dlim)
+        {
+            if ((dlim !== ":") && (dlim !== "=")){ return }; // not object
+            let resl,name,valu; resl = {};  text = text.split(dlim);
+            name = text[0].trim();  valu = text[1].trim();
+
+            return resl;
+        },
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// func :: params : get/normalize a list of arguments .. if `a` is omitted then implied `argv[]` id used/improvised
+// ----------------------------------------------------------------------------------------------------------------------------
+    const params = function params(a, r)
+    {
+        if (a===VOID) // get server.argv, or client.URLSearchParams
+        {
+            if (CLIENTSIDE)
+            { r = new URLSearchParams(location.search) }
+            else
+            {
+                r = this.argv;  if (r){return r};
+                r = process.argv;  r.shift();  r.shift();
+                r = parsed(r.join("\n"));  this.argv = r;
+
+            }
             return r;
         };
 
-        if ((d==":")||(d=="="))
-        {
-            let k=p[0];  w=k.expose(FRST,LAST);
-            if(w.hasAny("''",'""',"``")){k=k.slice(1,-1)}; // clean up key
-            r={[k]:parsed(p[2])}; return r;
-        };
-
-        return t; // return trimmed text
-    // ------------------------------------------------------------------------------------------------------------------------
-    };
-// ----------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-// func :: params : get/normalize a list of arguments, for if a function was called with an array and `arguments` is used
-// ----------------------------------------------------------------------------------------------------------------------------
-    const params = function params(a)
-    {
-        if(SERVERSIDE&&((a===VOID)||(detect(a)=="numr")))
-        {
-            let l=process.argv; l.shift(); l.shift();
-            return ((detect(a)=="numr") ? l[a] : l); // args from CLI
-        };
-
-        if(length(a)<1){return []}; // void or empty
-        if(detect(a)!="list"){a=[a]} // to array
-        else if(detect(a[0])=="list"){a=a[0]}; // sub-args-array
-
-        return ([].slice.call(a));
+        if (length(a) < 1){ return [] }; // void or empty
+        r = ((detect(a)!="list") ? [a] : ((detect(a[0])=="list") ? a[0] : a)) // cast to array .. exhume 1st if it is array
+        return ([].slice.call(r)); // normalize `arguments`
     }
+    .bind({});
 // ----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -448,6 +530,7 @@
         detect: detect,
         texted: texted,
         struct: struct,
+        copied: copied,
         parsed: parsed,
         params: params,
         expect: expect,

@@ -11,13 +11,17 @@
             drivers: new Choice().listen("change",(evnt)=>
             {
                 evnt = evnt.detail;
-                evnt.parent.driver = evnt.chosen.value;
-                System.signal("viewerChange");
+                evnt.parent.driver = evnt.value;
 
-                evnt.parent.driver.vivify({get:function(a1,a2)
+                System.listen("viewerChange",()=>
                 {
-                    dump("Viewer: ",a1,a2);
-                }});
+                    after(1)(()=>
+                    {
+                        evnt.parent.driver.vivify(evnt.parent.driver.config);
+                    });
+                });
+
+                System.signal("viewerChange", evnt.parent.driver);
             }),
         }),
     });
@@ -32,20 +36,81 @@
     ({
         CLI: new Driver(process).extend
         ({
+            config:
+            {
+            },
+
+
+            vivify: function(conf)
+            {
+                dump(conf);
+            },
+
+
+            resync: function()
+            {
+
+            },
+
+
+            render: function()
+            {
+
+            },
+
+
             create: function()
             {
             },
 
 
-            select: function()
+            modify: function()
             {
+            },
 
+
+            insert: function()
+            {
             },
 
 
             remove: function()
             {
 
+            },
+
+
+            search: function()
+            {
+
+            },
+
+
+            parlay: function()
+            {
+
+            },
+        })
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// defn :: Viewer.drivers.API : Application Programming Interface
+// ----------------------------------------------------------------------------------------------------------------------------
+    Viewer.drivers.extend
+    ({
+        API: new Driver(process).extend
+        ({
+            config:
+            {
+            },
+
+
+            vivify: function(conf)
+            {
+                dump(params());
             },
         })
     });

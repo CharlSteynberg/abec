@@ -2,40 +2,60 @@
 
 
 
-// load :: core : modules
-// ------------------------------------------------------------
-    import "./core/system.mjs";
-    import "./core/parser.mjs";
-    import "./core/viewer.mjs";
-    import "./core/client.mjs";
-    import "./core/server.mjs";
-// ------------------------------------------------------------
+                         /*************************************************************************\
+
+                                                      */ "use strict" /*
+
+                                           ///////    ////////    /////////   /////////
+                                         //     //   //     //   //          //
+                                        /////////   ////////    ////////    //
+                                       //     //   //     //   //          //
+                                      //     //   ////////    /////////   /////////
+
+                                   A b s t r a c t   B i o s   E v o l u t i o n   C o r e
+
+                         \******************************   v1.0.10   ******************************/
 
 
 
 
-// init :: core : system
-// ------------------------------------------------------------
+
+
+// load :: core : modules .. these are loaded in particular order for easy debugging along the way
+// ----------------------------------------------------------------------------------------------------------------------------
+    import "./core/system.mjs"; // the essence
+    import "./core/parser.mjs"; // transpilation and reflection
+    import "./core/viewer.mjs"; // any user input and output .. server -and client-based: CLI, DOM, WGL, WVR, WXR
+    import "./core/client.mjs"; // dynamic - depending on where this library's running process is based .. `PROCBASE`
+    import "./core/server.mjs"; // same as client .. these have different roles in each environment respectively
+// ----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+// upon :: (system loaded) : give any parent module time to hijack the `loaded` event .. if not cancelled we take over with CLI
+// ----------------------------------------------------------------------------------------------------------------------------
     System.listen("loaded", function onReady()
     {
-        var idle = tick.after(10, function idle()
-        {
-            if (!!Viewer.driver.value){ cancel(idle); return }; // Viewer is handled by another module
-            if (SERVERSIDE){ Viewer.drivers.choose("CLI") };
-        });
+        if (!!Viewer.drivers.value){ return }; // Viewer is handled by another module .. no take-over needed
+        if (length(params()) > 0){ Viewer.drivers.choose("API"); return }; // run as API .. no CLI needed
+        Viewer.drivers.choose("CLI"); // as fallback interface .. most basic, but provides advanced interaction
     });
+// ----------------------------------------------------------------------------------------------------------------------------
 
 
-    (!function boot()
+
+
+// emit :: (system loaded) : when all dependencies/assets loaded .. cross-platform
+// ----------------------------------------------------------------------------------------------------------------------------
+    when(function isReady()
     {
-        when(function isReady()
-        {
-            if (SERVERSIDE){ return true };
-            return (document.readyState === "complete");
-        })
-        .then(function init()
-        {
-            System.signal("loaded");
-        });
-    }());
-// ------------------------------------------------------------
+        if ((typeof Server) == "undefined"){ return };
+        if (SERVERSIDE){ return true };
+        return (document.readyState === "complete");
+    })
+    .then(function init()
+    {
+        after(1)(()=>{ System.signal("loaded") });
+    });
+// ----------------------------------------------------------------------------------------------------------------------------
