@@ -42,7 +42,7 @@
 
             vivify: function(conf)
             {
-                dump(conf);
+                // dump(conf);
             },
 
 
@@ -111,7 +111,7 @@
             {
                 let exec = params()[0];
                 let resl = parsed("function exec(){ "+exec+" }")();
-                dump(resl);
+                return resl;
             },
         })
     });

@@ -38,8 +38,16 @@
             ({
                 create: function(path, port, addr)
                 {
-                    dump("olo from Server.create()");
-                    dump(this.memory.device);
+                    path = (path || process.cwd());
+                    port = (port || 1728);
+                    addr = (addr || "0.0.0.0");
+
+                    this.memory.inst = this.memory.device.createServer(function handler(req,rsp)
+                    {
+                        new Client(req,rsp);
+                    });
+
+                    this.memory.inst.listen(port,addr);
                 },
             }),
         }),

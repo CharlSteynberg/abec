@@ -8,8 +8,11 @@
     {
         constructor(req,rsp)
         {
-            this.request = req;
-            this.response = rsp;
+            this.query = req;
+            this.reply = rsp;
+
+            dump(req.method, req.url);
+            rsp.end("olo :)");
 
             return this;
         }
