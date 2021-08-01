@@ -99,7 +99,8 @@
         type = (typeof defn).slice(0,4);  if(type == "unde"){return "void"};
         kind = descry(defn).split("/").pop().slice(0,4);
 
-        if((type=="func") && ((typeof defn.constructor)=="function") && (defn.constructor.name !== "Function")){kind="tool"}
+        if((type=="func") && ((typeof defn.constructor)=="function") && (defn.constructor.name !== "Function")){return "tool"}
+        else if ((type=="obje") && ((typeof defn.hasOwnProperty)!="function")){ return "tool"}
         else if(("arra argu list coll").indexOf(kind) > -1){kind="arra"};
 
         return (this[kind] || this[type] || kind);
@@ -261,7 +262,9 @@
             Object.keys(v).forEach((fk)=>{r[fk]=copied(v[fk])});
             return r;
         };
-    });
+
+        moan("failed to copy "+t);
+    };
 // ----------------------------------------------------------------------------------------------------------------------------
 
 

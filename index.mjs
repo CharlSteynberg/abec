@@ -24,7 +24,6 @@
 // load :: core : modules .. these are loaded in particular order for easy debugging along the way
 // ----------------------------------------------------------------------------------------------------------------------------
     import "./core/system.mjs"; // the essence
-    import "./core/parser.mjs"; // transpilation and reflection
     import "./core/viewer.mjs"; // any user input and output .. server -and client-based: CLI, DOM, WGL, WVR, WXR
     import "./core/client.mjs"; // dynamic - depending on where this library's running process is based .. `PROCBASE`
     import "./core/server.mjs"; // same as client .. these have different roles in each environment respectively

@@ -6,12 +6,12 @@
 // ----------------------------------------------------------------------------------------------------------------------------
     Object.prototype.define(function assign(defn)
     {
-        let type = detect(resl);
+        // defn.peruse((val,key)=>
+        // {
+        //     Object.defineProperty(this,key,{value:val});
+        // });
 
-        defn.peruse((key,val)=>
-        {
-            this[key] = val;
-        });
+        Object.assign(this,defn);
 
         return this;
     });
@@ -24,16 +24,24 @@
 // ----------------------------------------------------------------------------------------------------------------------------
     Object.prototype.define(function append(defn)
     {
-        let resl = copied(this);
-        let type = detect(resl);
+        // let type = detect(this);
+        // let resl = ((type == "list") ? [] : {});
+        //
+        // this.peruse((val,key)=>
+        // {
+        //     if (type == "list"){ resl.push(val) }
+        //     else { Object.defineProperty(resl,key,{value:val}) };
+        // });
+        //
+        // defn.peruse((val,key)=>
+        // {
+        //     if (type == "list"){ resl.push(val) }
+        //     else { Object.defineProperty(resl,key,{value:val}) };
+        // });
+        //
+        // return resl;
 
-        defn.peruse((key,val)=>
-        {
-            if (type == "list"){ resl.push(val) }
-            else { resl[key] = val };
-        });
-
-        return resl;
+        return {}.assign(this).assign(defn);
     });
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -466,6 +474,7 @@
 
             listen: function listen(evnt,func)
             {
+                // if (!func.name){func.define({name:(evnt+"Handler")})};
                 if (!this.events[evnt]){this.events[evnt] = {}}; // if event-name does not exist, create it
                 let hash = hashed(func);  this.events[evnt][hash] = func; // store each function at hash-key of event
                 return this; // makes methods chainable .. you're welcome :D
